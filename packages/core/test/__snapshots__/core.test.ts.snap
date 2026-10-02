@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tokens > exports CSS variables 1`] = `
+"/* Acme — design tokens (rev 0) */
+:root {
+  --color-paper: #F4F2EE;
+  --color-paper-50: #F7F7F5;
+  --color-paper-100: #ECEBE9;
+  --color-paper-200: #DAD9D6;
+  --color-paper-300: #C2C1BE;
+  --color-paper-400: #A3A19E;
+  --color-paper-500: #888682;
+  --color-paper-600: #6D6C68;
+  --color-paper-700: #565552;
+  --color-paper-800: #41403D;
+  --color-paper-900: #2C2B2A;
+  --color-paper-950: #191817;
+  --color-ink: #1C1C1C;
+  --color-ink-50: #F7F7F7;
+  --color-ink-100: #EBEBEB;
+  --color-ink-200: #D9D9D9;
+  --color-ink-300: #C1C1C1;
+  --color-ink-400: #A1A1A1;
+  --color-ink-500: #868686;
+  --color-ink-600: #6C6C6C;
+  --color-ink-700: #555555;
+  --color-ink-800: #404040;
+  --color-ink-900: #2B2B2B;
+  --color-ink-950: #181818;
+  --color-sky: #90A7CE;
+  --color-sky-50: #EDF7FF;
+  --color-sky-100: #E0ECFF;
+  --color-sky-200: #CBDAF3;
+  --color-sky-300: #B0C2E0;
+  --color-sky-400: #8EA2C6;
+  --color-sky-500: #7187AC;
+  --color-sky-600: #586C8F;
+  --color-sky-700: #445673;
+  --color-sky-800: #324058;
+  --color-sky-900: #212C3D;
+  --color-sky-950: #121823;
+
+  --background: #F4F2EE;
+  --foreground: #1C1C1C;
+  --primary: #90A7CE;
+  --primary-foreground: #111111;
+  --accent: #90A7CE;
+  --muted: #F4F2EE;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-text: "Inter", system-ui, sans-serif;
+  --text-display: 4rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 400;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 400;
+}
+"
+`;

@@ -1,0 +1,671 @@
+{
+  "schemaVersion": 1,
+  "slug": "meridian",
+  "rev": 2,
+  "updatedAt": "2026-10-02T10:09:37.209Z",
+  "updatedBy": "system",
+  "meta": {
+    "name": "Meridian",
+    "tagline": "Money, in its right place.",
+    "story": "Meridian is bookkeeping for small studios — architects, designers, makers. It reconciles accounts, chases invoices and prepares taxes quietly in the background, so the work in front of you gets your full attention.",
+    "audience": "Independent studios of 2–30 people who care how their tools look and feel.",
+    "voice": [
+      "Calm",
+      "Precise",
+      "Warm",
+      "Unhurried"
+    ],
+    "keywords": [
+      "calm",
+      "editorial",
+      "trustworthy",
+      "warm"
+    ]
+  },
+  "logo": {
+    "wordmark": "",
+    "markSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\" fill=\"currentColor\">\n<path fill-rule=\"evenodd\" d=\"M24 3a21 21 0 1 1 0 42a21 21 0 1 1 0-42zm0 3.5a17.5 17.5 0 1 0 0 35a17.5 17.5 0 1 0 0-35z\"/>\n<path fill-rule=\"evenodd\" d=\"M24 6.5c5.6 0 9.5 7.8 9.5 17.5S29.6 41.5 24 41.5 14.5 33.7 14.5 24 18.4 6.5 24 6.5zm0 3.4c-3.4 0-6.1 6.3-6.1 14.1S20.6 38.1 24 38.1s6.1-6.3 6.1-14.1S27.4 9.9 24 9.9z\"/>\n<rect x=\"5\" y=\"22.3\" width=\"38\" height=\"3.4\" rx=\"1.7\"/>\n</svg>",
+    "clearSpace": 0.5,
+    "minSize": 24,
+    "notes": ""
+  },
+  "colors": [
+    {
+      "id": "paper",
+      "name": "Paper",
+      "hex": "#F2F0EB",
+      "role": "background",
+      "usage": "Default page and surface color.",
+      "scale": {
+        "50": "#F7F7F5",
+        "100": "#ECEBE9",
+        "200": "#DAD9D6",
+        "300": "#C2C1BD",
+        "400": "#A3A19D",
+        "500": "#888681",
+        "600": "#6D6C67",
+        "700": "#575552",
+        "800": "#41403D",
+        "900": "#2C2B29",
+        "950": "#191817"
+      }
+    },
+    {
+      "id": "ink",
+      "name": "Ink",
+      "hex": "#222222",
+      "role": "text",
+      "usage": "Body text, rules and the logomark.",
+      "scale": {
+        "50": "#F7F7F7",
+        "100": "#EBEBEB",
+        "200": "#D9D9D9",
+        "300": "#C1C1C1",
+        "400": "#A1A1A1",
+        "500": "#868686",
+        "600": "#6C6C6C",
+        "700": "#555555",
+        "800": "#404040",
+        "900": "#2B2B2B",
+        "950": "#181818"
+      }
+    },
+    {
+      "id": "sky",
+      "name": "Sky",
+      "hex": "#90A7CE",
+      "role": "primary",
+      "usage": "Primary brand color for hero moments and key UI.",
+      "scale": {
+        "50": "#EDF7FF",
+        "100": "#E0ECFF",
+        "200": "#CBDAF3",
+        "300": "#B0C2E0",
+        "400": "#8EA2C6",
+        "500": "#7187AC",
+        "600": "#586C8F",
+        "700": "#445673",
+        "800": "#324058",
+        "900": "#212C3D",
+        "950": "#121823"
+      }
+    },
+    {
+      "id": "olive",
+      "name": "Olive",
+      "hex": "#B5B69F",
+      "role": "secondary",
+      "usage": "Supporting tone for illustration and data.",
+      "scale": {
+        "50": "#F7F8EE",
+        "100": "#ECECE0",
+        "200": "#DADACC",
+        "300": "#C2C2B1",
+        "400": "#A2A38F",
+        "500": "#878872",
+        "600": "#6D6E59",
+        "700": "#565745",
+        "800": "#404133",
+        "900": "#2C2C22",
+        "950": "#191913"
+      }
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "hex": "#E5EAD8",
+      "role": "neutral",
+      "usage": "Quiet panels and backgrounds.",
+      "scale": {
+        "50": "#F6F8F0",
+        "100": "#EAECE4",
+        "200": "#D8DBD0",
+        "300": "#BFC3B6",
+        "400": "#A0A494",
+        "500": "#848978",
+        "600": "#6A6E5F",
+        "700": "#54574A",
+        "800": "#3E4137",
+        "900": "#2A2C25",
+        "950": "#181914"
+      }
+    },
+    {
+      "id": "ember",
+      "name": "Ember",
+      "hex": "#D9774B",
+      "role": "accent",
+      "usage": "Sparingly — one signal per view.",
+      "scale": {
+        "50": "#FFF0E3",
+        "100": "#FFE0CD",
+        "200": "#FFC8AD",
+        "300": "#F9AC8A",
+        "400": "#E1875F",
+        "500": "#C7683C",
+        "600": "#A74E24",
+        "700": "#883B15",
+        "800": "#682B0B",
+        "900": "#491C06",
+        "950": "#2B0F04"
+      }
+    }
+  ],
+  "typography": {
+    "display": {
+      "family": "PT Serif",
+      "source": "google",
+      "weights": [
+        400,
+        700
+      ],
+      "italic": true,
+      "fallback": "Georgia, 'Times New Roman', serif",
+      "usage": "Headlines, campaign lines and section openers. Never below 20px."
+    },
+    "text": {
+      "family": "DM Sans",
+      "source": "google",
+      "weights": [
+        400,
+        500,
+        700
+      ],
+      "italic": false,
+      "fallback": "system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "usage": "Interface, body copy, captions and data."
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "source": "google",
+      "weights": [
+        400,
+        500
+      ],
+      "italic": false,
+      "fallback": "ui-monospace, 'SF Mono', Menlo, monospace",
+      "usage": "Figures, codes and labels."
+    },
+    "scale": [
+      {
+        "name": "Display",
+        "font": "display",
+        "size": 72,
+        "lineHeight": 1.02,
+        "tracking": -0.02,
+        "weight": 400
+      },
+      {
+        "name": "Headline",
+        "font": "display",
+        "size": 40,
+        "lineHeight": 1.1,
+        "tracking": -0.015,
+        "weight": 400
+      },
+      {
+        "name": "Subhead",
+        "font": "text",
+        "size": 22,
+        "lineHeight": 1.3,
+        "tracking": -0.01,
+        "weight": 500
+      },
+      {
+        "name": "Body",
+        "font": "text",
+        "size": 16,
+        "lineHeight": 1.55,
+        "tracking": 0,
+        "weight": 400
+      },
+      {
+        "name": "Caption",
+        "font": "text",
+        "size": 13,
+        "lineHeight": 1.45,
+        "tracking": 0,
+        "weight": 400
+      },
+      {
+        "name": "Label",
+        "font": "mono",
+        "size": 12,
+        "lineHeight": 1.4,
+        "tracking": 0.04,
+        "weight": 500
+      }
+    ]
+  },
+  "imagery": {
+    "style": "Soft, atmospheric, painterly light; quiet landscapes at golden hour; generous negative space; no people facing camera.",
+    "assets": [
+      {
+        "id": "img-horizon-16x9",
+        "file": "assets/horizon-streaks-over.svg",
+        "alt": "Horizontal bands of soft blue and sage light, like a blurred horizon",
+        "caption": "",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "horizon streaks over a still bay at dusk",
+        "width": 1600,
+        "height": 900
+      },
+      {
+        "id": "img-mist-4x3",
+        "file": "assets/mist-rising-over.svg",
+        "alt": "Soft blue and sage haze",
+        "caption": "Mist",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "mist rising over hills",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-field-4x3",
+        "file": "assets/field-streaks-in.svg",
+        "alt": "Motion-blurred bands of olive and cream",
+        "caption": "Field",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "field streaks in late summer",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-lake-4x3",
+        "file": "assets/lake-reflection-morning.svg",
+        "alt": "Pale blue blur with a warm glow",
+        "caption": "Lake",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "lake reflection morning",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-coastal-4x3",
+        "file": "assets/coastal-horizon-motion.svg",
+        "alt": "Layered horizontal bands of sea and sky",
+        "caption": "Coast",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "coastal horizon motion",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-evening-4x3",
+        "file": "assets/evening-glow-over.svg",
+        "alt": "Warm ember light fading into blue",
+        "caption": "Valley",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "evening glow over valley",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-sage-4x3",
+        "file": "assets/sage-meadow-haze.svg",
+        "alt": "Muted sage and olive haze",
+        "caption": "Meadow",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "sage meadow haze",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "id": "img-dusk-16x9",
+        "file": "assets/dusk-sky-banding.svg",
+        "alt": "Billboard image: dusky blue horizon bands",
+        "caption": "",
+        "credit": "Generated · guidelines-gradient-v1",
+        "prompt": "dusk sky banding over water",
+        "width": 1600,
+        "height": 900
+      }
+    ]
+  },
+  "icons": [
+    {
+      "id": "calendar",
+      "name": "Calendar",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3.5\" y=\"5\" width=\"17\" height=\"15\" rx=\"2\"/><path d=\"M3.5 10h17M8 3v4M16 3v4\"/></svg>"
+    },
+    {
+      "id": "invoice",
+      "name": "Invoice",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 3h9l4 4v14H6z\"/><path d=\"M15 3v4h4M9 12h7M9 16h5\"/></svg>"
+    },
+    {
+      "id": "paid",
+      "name": "Paid",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"m8.5 12.2 2.4 2.4 4.6-5\"/></svg>"
+    },
+    {
+      "id": "report",
+      "name": "Report",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20V4M4 20h16\"/><path d=\"M8 16v-4M12 16V8M16 16v-6\"/></svg>"
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4 4\"/></svg>"
+    },
+    {
+      "id": "studio",
+      "name": "Studio",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5 12 4l8 6.5V20H4z\"/><path d=\"M10 20v-5h4v5\"/></svg>"
+    },
+    {
+      "id": "filter",
+      "name": "Filter",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 5h16l-6 7.5V19l-4-2v-4.5z\"/></svg>"
+    },
+    {
+      "id": "client",
+      "name": "Client",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"8.5\" r=\"3.5\"/><path d=\"M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5\"/></svg>"
+    },
+    {
+      "id": "meridian",
+      "name": "Meridian",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"/><ellipse cx=\"12\" cy=\"12\" rx=\"4\" ry=\"8.5\"/><path d=\"M3.5 12h17\"/></svg>"
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"6\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M3 10h18M7 14.5h3\"/></svg>"
+    },
+    {
+      "id": "bank",
+      "name": "Bank",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3.5 9 12 4l8.5 5zM5 9v8M9.5 9v8M14.5 9v8M19 9v8M3.5 20h17\"/></svg>"
+    },
+    {
+      "id": "reminder",
+      "name": "Reminder",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z\"/><path d=\"M10 20.5a2.2 2.2 0 0 0 4 0\"/></svg>"
+    },
+    {
+      "id": "secure",
+      "name": "Secure",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"10.5\" width=\"14\" height=\"10\" rx=\"2\"/><path d=\"M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5\"/></svg>"
+    },
+    {
+      "id": "automate",
+      "name": "Automate",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1\"/><circle cx=\"12\" cy=\"12\" r=\"2.5\"/></svg>"
+    }
+  ],
+  "pages": [
+    {
+      "id": "cover",
+      "layout": "cover",
+      "slots": {
+        "title": "Brand Guidelines",
+        "subtitle": "Edition 01 · 2026",
+        "image": "img-horizon-16x9"
+      }
+    },
+    {
+      "id": "purpose",
+      "layout": "statement",
+      "slots": {
+        "eyebrow": "Our purpose",
+        "headline": "Money, in its right place.",
+        "body": "We take the noise out of running a studio — so the numbers stay true and the work stays first.",
+        "tone": "light"
+      }
+    },
+    {
+      "id": "logomark",
+      "layout": "logomark",
+      "slots": {
+        "title": "Logomark",
+        "body": "The logomark is the symbol element of our logo, used independently of the wordmark where space is tight. Keep the clear space shown — half the mark's height on every side — and never redraw, outline or rotate it.",
+        "show": "mark"
+      }
+    },
+    {
+      "id": "palette",
+      "layout": "palette",
+      "slots": {
+        "title": "Color palette",
+        "body": "Paper and Ink carry almost everything. Sky leads brand moments; Olive and Sage support. Ember is a signal — use it once per view, never as a background."
+      }
+    },
+    {
+      "id": "primary-font",
+      "layout": "type-specimen",
+      "slots": {
+        "title": "Primary font",
+        "body": "PT Serif sets our headlines with a calm, bookish authority. Use it in promotional material, social and landing pages — not in the product UI.",
+        "font": "display"
+      }
+    },
+    {
+      "id": "secondary-font",
+      "layout": "type-specimen",
+      "slots": {
+        "title": "Secondary font",
+        "body": "DM Sans does the everyday work: interface, body copy, captions and tables. Friendly, legible, never loud.",
+        "font": "text"
+      }
+    },
+    {
+      "id": "imagery",
+      "layout": "imagery-grid",
+      "slots": {
+        "title": "Brand imagery",
+        "body": "Imagery is soft and atmospheric — light over land and water, horizons rather than subjects. It should feel like the moment after the books are closed.",
+        "images": "img-mist-4x3,img-field-4x3,img-lake-4x3,img-coastal-4x3,img-evening-4x3,img-sage-4x3"
+      }
+    },
+    {
+      "id": "billboard",
+      "layout": "application-mockup",
+      "slots": {
+        "title": "Billboard",
+        "body": "At distance, the system reduces to one image, one line and the mark. Headlines stay in PT Serif; everything else gets out of the way.",
+        "variant": "billboard",
+        "image": "img-dusk-16x9",
+        "headline": "Every invoice, gently chased.",
+        "cta": "Start free"
+      }
+    },
+    {
+      "id": "product",
+      "layout": "application-mockup",
+      "slots": {
+        "title": "Product surfaces",
+        "body": "In the product, glass cards float on atmospheric color. Data uses Sky and Olive; Ember marks the one thing that needs attention.",
+        "variant": "card",
+        "headline": "$96,316.10",
+        "cta": "View report →"
+      }
+    },
+    {
+      "id": "banner",
+      "layout": "application-mockup",
+      "slots": {
+        "title": "Street banner",
+        "body": "Banners lead with the headline and lockup on Paper, letting the architecture and sky do the rest.",
+        "variant": "banner",
+        "headline": "Automate the books for every studio."
+      }
+    },
+    {
+      "id": "icons",
+      "layout": "iconography-grid",
+      "slots": {
+        "title": "Iconography",
+        "body": "Icons are drawn on a 24px grid with a 1.5px stroke and rounded joins. They inherit Ink and sit on soft white tiles."
+      }
+    },
+    {
+      "id": "usage",
+      "layout": "do-dont",
+      "slots": {
+        "title": "Usage",
+        "body": "A few rules keep Meridian recognisable everywhere it appears.",
+        "do": "Lead with generous Paper and one strong image\nSet headlines in PT Serif, sentence case\nUse Ember for a single call to action",
+        "dont": "Fill backgrounds with Ember\nStack more than two typefaces\nPlace text over busy image areas",
+        "doImage": "img-mist-4x3",
+        "dontImage": "img-evening-4x3"
+      }
+    }
+  ],
+  "board": {
+    "items": [
+      {
+        "id": "bi-ybg351",
+        "kind": "image",
+        "ref": "img-horizon-16x9",
+        "text": "",
+        "x": 0,
+        "y": 0,
+        "w": 388,
+        "h": 218,
+        "z": 1
+      },
+      {
+        "id": "bi-qts5v2",
+        "kind": "type",
+        "ref": "display",
+        "text": "",
+        "x": 404,
+        "y": 0,
+        "w": 388,
+        "h": 239,
+        "z": 2
+      },
+      {
+        "id": "bi-js7yt3",
+        "kind": "swatch",
+        "ref": "sky",
+        "text": "",
+        "x": 808,
+        "y": 0,
+        "w": 388,
+        "h": 504,
+        "z": 3
+      },
+      {
+        "id": "bi-m8w474",
+        "kind": "swatch",
+        "ref": "olive",
+        "text": "",
+        "x": 1212,
+        "y": 0,
+        "w": 388,
+        "h": 504,
+        "z": 4
+      },
+      {
+        "id": "bi-bbepd5",
+        "kind": "swatch",
+        "ref": "ember",
+        "text": "",
+        "x": 0,
+        "y": 234,
+        "w": 388,
+        "h": 504,
+        "z": 5
+      },
+      {
+        "id": "bi-7hphf6",
+        "kind": "image",
+        "ref": "img-mist-4x3",
+        "text": "",
+        "x": 404,
+        "y": 255,
+        "w": 388,
+        "h": 291,
+        "z": 6
+      },
+      {
+        "id": "bi-d2sv87",
+        "kind": "image",
+        "ref": "img-field-4x3",
+        "text": "",
+        "x": 808,
+        "y": 520,
+        "w": 388,
+        "h": 291,
+        "z": 7
+      },
+      {
+        "id": "bi-5beff8",
+        "kind": "image",
+        "ref": "img-lake-4x3",
+        "text": "",
+        "x": 1212,
+        "y": 520,
+        "w": 388,
+        "h": 291,
+        "z": 8
+      },
+      {
+        "id": "bi-y6djz9",
+        "kind": "image",
+        "ref": "img-coastal-4x3",
+        "text": "",
+        "x": 404,
+        "y": 562,
+        "w": 388,
+        "h": 291,
+        "z": 9
+      },
+      {
+        "id": "bi-f8sx5a",
+        "kind": "image",
+        "ref": "img-evening-4x3",
+        "text": "",
+        "x": 0,
+        "y": 754,
+        "w": 388,
+        "h": 291,
+        "z": 10
+      },
+      {
+        "id": "bi-xlgllb",
+        "kind": "note",
+        "text": "Quiet confidence. Think gallery wall labels, not fintech dashboards.",
+        "x": 808,
+        "y": 827,
+        "w": 388,
+        "h": 194,
+        "z": 11
+      },
+      {
+        "id": "bi-inurvc",
+        "kind": "type",
+        "ref": "text",
+        "text": "",
+        "x": 1212,
+        "y": 827,
+        "w": 388,
+        "h": 239,
+        "z": 12
+      },
+      {
+        "id": "bi-1uh1nd",
+        "kind": "swatch",
+        "ref": "sage",
+        "text": "",
+        "x": 404,
+        "y": 869,
+        "w": 388,
+        "h": 504,
+        "z": 13
+      },
+      {
+        "id": "bi-wxsi6e",
+        "kind": "note",
+        "text": "Light over land and water — horizons, never subjects.",
+        "x": 808,
+        "y": 1037,
+        "w": 388,
+        "h": 175,
+        "z": 14
+      }
+    ]
+  }
+}

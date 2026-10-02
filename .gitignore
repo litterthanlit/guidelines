@@ -1,0 +1,18 @@
+node_modules
+.next
+dist
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+coverage
+
+# User brand projects stay local; the seed example is committed.
+brands/*
+!brands/meridian
+brands/meridian/history
+brands/meridian/activity.jsonl
+brands/meridian/.lock
+next-env.d.ts
+apps/web/smoke
+brands/meridian/exports

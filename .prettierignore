@@ -1,0 +1,5 @@
+brands
+node_modules
+.next
+pnpm-lock.yaml
+**/__snapshots__

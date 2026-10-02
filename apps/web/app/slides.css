@@ -1,0 +1,213 @@
+/*
+ * Guideline slides. Every page is a 16:9 "spread" that scales with its
+ * container: --u is 1% of the slide width (16px on a 1600px canvas), so a page
+ * looks identical as a thumbnail, in the editor, fullscreen, or in a render.
+ * Under 560px wide, spreads reflow into a stacked mobile layout.
+ *
+ * All brand values arrive as CSS variables from <BrandTheme>.
+ */
+
+.slide-shell {
+  container-type: inline-size;
+  container-name: slide;
+  width: 100%;
+}
+/* Thumbnails keep the desktop composition at any size. */
+.slide-shell.is-fixed {
+  container-name: slide-fixed;
+}
+
+.slide {
+  --u: 1cqw;
+  --pad: calc(var(--u) * 2.4);
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--b-bg);
+  color: var(--b-fg);
+  font-family: var(--b-text);
+  font-size: calc(var(--u) * 0.85);
+  line-height: 1.5;
+  isolation: isolate;
+}
+
+.slide :where(h1, h2, h3, p) {
+  margin: 0;
+}
+
+/* ── Spread: narrow text column + large media field (editorial) ── */
+.spread {
+  display: flex;
+  height: 100%;
+  padding: var(--pad);
+  gap: var(--pad);
+}
+.spread-text {
+  width: 21%;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.spread-media {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 0.25);
+  background: var(--b-panel);
+}
+
+.s-title {
+  margin-top: calc(var(--u) * 2.8) !important;
+  font-size: calc(var(--u) * 1.4);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+}
+.s-body {
+  margin-top: calc(var(--u) * 1.1) !important;
+  font-size: calc(var(--u) * 0.78);
+  line-height: 1.55;
+  opacity: 0.78;
+  white-space: pre-line;
+  max-width: 34ch;
+}
+.s-folio {
+  margin-top: auto;
+  padding-top: calc(var(--u) * 1.2);
+  font-size: calc(var(--u) * 0.7);
+  line-height: 1.45;
+  opacity: 0.72;
+}
+.s-eyebrow {
+  font-family: var(--b-mono, var(--b-text));
+  font-size: calc(var(--u) * 0.7);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.s-display {
+  font-family: var(--b-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+.s-cover-title {
+  font-size: calc(var(--u) * 8.4);
+  max-width: 9ch;
+}
+.s-statement-card {
+  max-width: 62%;
+}
+.s-statement-title {
+  font-size: calc(var(--u) * 3.9);
+  text-wrap: balance;
+}
+.s-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+  font-family: var(--b-text);
+  font-weight: 500;
+  font-size: calc(var(--u) * 1.05);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.s-mark {
+  display: inline-block;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+}
+.s-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.s-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.s-mono {
+  font-family: var(--b-mono, ui-monospace, monospace);
+}
+
+/* ── Editing affordances (studio only) ── */
+.slide [data-slot] {
+  border-radius: 2px;
+  transition: box-shadow 140ms;
+}
+.slide.is-editable [data-slot]:hover {
+  box-shadow: 0 0 0 1px rgb(255 79 31 / 0.55);
+  cursor: text;
+}
+.slide.is-editable [data-slot]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(255 79 31 / 0.9);
+}
+.slide.is-editable [data-slot]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+}
+.slide [data-drop="over"] {
+  box-shadow: inset 0 0 0 3px rgb(255 79 31 / 0.9);
+}
+.s-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--b-text);
+  font-size: calc(var(--u) * 0.75);
+  opacity: 0.5;
+  padding: var(--pad);
+}
+
+/* ── Mobile reflow ── */
+@container slide (max-width: 560px) {
+  .slide {
+    --u: 2.6cqw;
+    --pad: calc(var(--u) * 2);
+    aspect-ratio: auto;
+  }
+  .spread {
+    flex-direction: column;
+    height: auto;
+  }
+  .spread-text {
+    width: auto;
+  }
+  .spread-media {
+    flex: none;
+    aspect-ratio: 4 / 3;
+  }
+  .s-title {
+    margin-top: calc(var(--u) * 1.6) !important;
+  }
+  .s-body {
+    max-width: none;
+  }
+  .slide[data-layout="cover"],
+  .slide[data-layout="statement"] {
+    aspect-ratio: 4 / 5;
+  }
+  .s-cover-title {
+    font-size: calc(var(--u) * 4.6);
+  }
+  .s-statement-card {
+    max-width: 100%;
+  }
+  .s-statement-title {
+    font-size: calc(var(--u) * 2.6);
+  }
+}

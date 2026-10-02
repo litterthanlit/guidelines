@@ -1,0 +1,22 @@
+{
+  "name": "guidelines",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Brand guidelines studio — design brand systems with an AI agent over MCP.",
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "dev": "pnpm --filter @guidelines/web dev",
+    "build": "pnpm --filter @guidelines/web build",
+    "mcp": "pnpm --filter @guidelines/mcp start",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
+}

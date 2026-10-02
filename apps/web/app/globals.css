@@ -1,0 +1,181 @@
+@import "tailwindcss";
+@import "./slides.css";
+
+/*
+ * Studio chrome: a quiet, neutral frame so the brand being designed is the only
+ * thing with color. Monochrome + a single signal accent for live/agent activity.
+ */
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --color-canvas: #f4f4f2;
+  --color-surface: #ffffff;
+  --color-sunken: #ecebe8;
+  --color-line: #e4e3df;
+  --color-line-strong: #d3d2cd;
+  --color-ink: #161616;
+  --color-ink-2: #4a4a48;
+  --color-ink-3: #7b7a76;
+  --color-signal: #ff4f1f;
+  --color-signal-soft: #fff0ea;
+  --color-ok: #1f8a4c;
+  --color-warn: #b25e09;
+
+  --radius-panel: 14px;
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -8px rgb(0 0 0 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.04), 0 24px 48px -16px rgb(0 0 0 / 0.22);
+
+  --animate-fade-up: fade-up 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+  --animate-flash: flash 1.2s ease-out both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(255 79 31 / 0.35);
+    }
+    50% {
+      box-shadow: 0 0 0 5px rgb(255 79 31 / 0);
+    }
+  }
+  @keyframes flash {
+    from {
+      box-shadow: 0 0 0 3px rgb(255 79 31 / 0.55);
+    }
+    to {
+      box-shadow: 0 0 0 3px rgb(255 79 31 / 0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgb(255 79 31 / 0.18);
+  }
+}
+
+@layer components {
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    transition:
+      background-color 160ms,
+      color 160ms,
+      border-color 160ms,
+      transform 160ms;
+    white-space: nowrap;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .btn-primary {
+    background: var(--color-ink);
+    color: white;
+  }
+  .btn-primary:hover {
+    background: #2c2c2b;
+  }
+  .btn-ghost {
+    color: var(--color-ink-2);
+  }
+  .btn-ghost:hover {
+    background: var(--color-sunken);
+    color: var(--color-ink);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-surface);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-ink-3);
+  }
+  .field {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    transition: border-color 160ms;
+  }
+  .field:hover {
+    border-color: var(--color-line-strong);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-ink);
+  }
+  textarea.field {
+    resize: vertical;
+    min-height: 72px;
+    line-height: 1.5;
+  }
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+  }
+  .glass {
+    background: rgb(255 255 255 / 0.72);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
