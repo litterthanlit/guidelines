@@ -2,6 +2,7 @@
 
 import { contrastRatio, readableOn, svgDataUri, wcagLevel, type Color } from "@guidelines/core";
 import type { CSSProperties } from "react";
+import { Art } from "./Art";
 import { assetFor, DropZone, Lockup, Mark, SlotImage, SlotText, TextColumn, useEdit, useSlide } from "./slots";
 import { assetUrl } from "./theme";
 
@@ -10,10 +11,21 @@ const u = (n: number) => `calc(var(--u) * ${n})`;
 /* ───────────────────────────── Cover ───────────────────────────── */
 
 export function CoverLayout() {
-  const { brand } = useSlide();
+  const { brand, page } = useSlide();
+  const art = page.slots.art;
   return (
     <>
-      <SlotImage k="image" eager fallback={<div className="absolute inset-0 s-grain" style={{ background: "var(--b-gradient)" }} />} />
+      <SlotImage
+        k="image"
+        eager
+        fallback={
+          art ? (
+            <Art brand={brand} spec={art} tone="light" aspect={16 / 9} />
+          ) : (
+            <div className="absolute inset-0 s-grain" style={{ background: "var(--b-gradient)" }} />
+          )
+        }
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -36,15 +48,19 @@ export function CoverLayout() {
 /* ───────────────────────────── Statement ───────────────────────────── */
 
 export function StatementLayout() {
-  const { page } = useSlide();
+  const { brand, page } = useSlide();
   const dark = page.slots.tone === "dark";
   return (
     <>
-      <div
-        aria-hidden
-        className="absolute inset-[-10%] s-grain"
-        style={{ background: "var(--b-gradient)", filter: `blur(${u(3)}) ${dark ? "brightness(0.45) saturate(1.2)" : "saturate(1.05)"}` }}
-      />
+      {page.slots.art ? (
+        <Art brand={brand} spec={page.slots.art} tone={dark ? "dark" : "light"} aspect={16 / 9} />
+      ) : (
+        <div
+          aria-hidden
+          className="absolute inset-[-10%] s-grain"
+          style={{ background: "var(--b-gradient)", filter: `blur(${u(3)}) ${dark ? "brightness(0.45) saturate(1.2)" : "saturate(1.05)"}` }}
+        />
+      )}
       <div
         className="relative flex h-full flex-col items-center justify-center text-center"
         style={{ padding: "var(--pad)", color: dark ? "#fff" : "var(--b-fg)" }}

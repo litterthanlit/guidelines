@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "slug": "meridian",
-  "rev": 2,
-  "updatedAt": "2026-10-02T10:09:37.209Z",
+  "rev": 3,
+  "updatedAt": "2026-10-06T11:49:40.749Z",
   "updatedBy": "system",
   "meta": {
     "name": "Meridian",
@@ -23,11 +23,11 @@
     ]
   },
   "logo": {
-    "wordmark": "",
+    "wordmark": "Meridian",
     "markSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\" fill=\"currentColor\">\n<path fill-rule=\"evenodd\" d=\"M24 3a21 21 0 1 1 0 42a21 21 0 1 1 0-42zm0 3.5a17.5 17.5 0 1 0 0 35a17.5 17.5 0 1 0 0-35z\"/>\n<path fill-rule=\"evenodd\" d=\"M24 6.5c5.6 0 9.5 7.8 9.5 17.5S29.6 41.5 24 41.5 14.5 33.7 14.5 24 18.4 6.5 24 6.5zm0 3.4c-3.4 0-6.1 6.3-6.1 14.1S20.6 38.1 24 38.1s6.1-6.3 6.1-14.1S27.4 9.9 24 9.9z\"/>\n<rect x=\"5\" y=\"22.3\" width=\"38\" height=\"3.4\" rx=\"1.7\"/>\n</svg>",
     "clearSpace": 0.5,
-    "minSize": 24,
-    "notes": ""
+    "minSize": 20,
+    "notes": "A globe reduced to its essentials: horizon, meridian, and the curve between them — orientation without noise."
   },
   "colors": [
     {
@@ -36,6 +36,7 @@
       "hex": "#F2F0EB",
       "role": "background",
       "usage": "Default page and surface color.",
+      "traits": [],
       "scale": {
         "50": "#F7F7F5",
         "100": "#ECEBE9",
@@ -56,6 +57,7 @@
       "hex": "#222222",
       "role": "text",
       "usage": "Body text, rules and the logomark.",
+      "traits": [],
       "scale": {
         "50": "#F7F7F7",
         "100": "#EBEBEB",
@@ -76,6 +78,7 @@
       "hex": "#90A7CE",
       "role": "primary",
       "usage": "Primary brand color for hero moments and key UI.",
+      "traits": [],
       "scale": {
         "50": "#EDF7FF",
         "100": "#E0ECFF",
@@ -96,6 +99,7 @@
       "hex": "#B5B69F",
       "role": "secondary",
       "usage": "Supporting tone for illustration and data.",
+      "traits": [],
       "scale": {
         "50": "#F7F8EE",
         "100": "#ECECE0",
@@ -116,6 +120,7 @@
       "hex": "#E5EAD8",
       "role": "neutral",
       "usage": "Quiet panels and backgrounds.",
+      "traits": [],
       "scale": {
         "50": "#F6F8F0",
         "100": "#EAECE4",
@@ -136,6 +141,7 @@
       "hex": "#D9774B",
       "role": "accent",
       "usage": "Sparingly — one signal per view.",
+      "traits": [],
       "scale": {
         "50": "#FFF0E3",
         "100": "#FFE0CD",
@@ -405,6 +411,127 @@
       }
     },
     {
+      "id": "overview",
+      "layout": "board",
+      "slots": {
+        "title": "Overview",
+        "aspect": "3:2",
+        "rows": "12",
+        "frame": "rules"
+      },
+      "tiles": [
+        {
+          "id": "logo",
+          "kind": "logo",
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "h": 3,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "show": "lockup",
+            "align": "left",
+            "size": "l",
+            "caption": "Bookkeeping for\nsmall studios"
+          }
+        },
+        {
+          "id": "swirl",
+          "kind": "art",
+          "x": 0,
+          "y": 3,
+          "w": 3,
+          "h": 6,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "art": "haze:4"
+          }
+        },
+        {
+          "id": "palette",
+          "kind": "palette",
+          "x": 0,
+          "y": 9,
+          "w": 3,
+          "h": 3,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "style": "chips"
+          }
+        },
+        {
+          "id": "hero",
+          "kind": "hero",
+          "x": 3,
+          "y": 0,
+          "w": 6,
+          "h": 8,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "eyebrow": "Quiet ledger",
+            "headline": "Money, in its\nright place.",
+            "subhead": "The numbers stay true.\nThe work stays first.",
+            "art": "bands:3",
+            "align": "top-left",
+            "size": "xl"
+          }
+        },
+        {
+          "id": "steps",
+          "kind": "steps",
+          "x": 3,
+          "y": 8,
+          "w": 6,
+          "h": 4,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "label": "Meridian, in the background",
+            "items": "Reconcile — Accounts matched overnight.\nChase — Invoices followed up, politely.\nPrepare — Taxes ready before you ask.",
+            "arts": "haze:2, bands:5, haze:7",
+            "variant": "sequence"
+          }
+        },
+        {
+          "id": "logo-dark",
+          "kind": "logo",
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 5,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "show": "lockup",
+            "align": "center",
+            "size": "l"
+          }
+        },
+        {
+          "id": "poster",
+          "kind": "poster",
+          "x": 9,
+          "y": 5,
+          "w": 3,
+          "h": 7,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "headline": "Every invoice, gently chased.",
+            "subhead": "Bookkeeping for\nsmall studios.",
+            "cta": "Start free",
+            "logo": "top",
+            "fade": "top",
+            "art": "bands:8"
+          }
+        }
+      ]
+    },
+    {
       "id": "purpose",
       "layout": "statement",
       "slots": {
@@ -515,7 +642,7 @@
   "board": {
     "items": [
       {
-        "id": "bi-ybg351",
+        "id": "bi-c09f21",
         "kind": "image",
         "ref": "img-horizon-16x9",
         "text": "",
@@ -526,7 +653,7 @@
         "z": 1
       },
       {
-        "id": "bi-qts5v2",
+        "id": "bi-pydlp2",
         "kind": "type",
         "ref": "display",
         "text": "",
@@ -537,7 +664,7 @@
         "z": 2
       },
       {
-        "id": "bi-js7yt3",
+        "id": "bi-pe56a3",
         "kind": "swatch",
         "ref": "sky",
         "text": "",
@@ -548,7 +675,7 @@
         "z": 3
       },
       {
-        "id": "bi-m8w474",
+        "id": "bi-37e4w4",
         "kind": "swatch",
         "ref": "olive",
         "text": "",
@@ -559,7 +686,7 @@
         "z": 4
       },
       {
-        "id": "bi-bbepd5",
+        "id": "bi-d9t175",
         "kind": "swatch",
         "ref": "ember",
         "text": "",
@@ -570,7 +697,7 @@
         "z": 5
       },
       {
-        "id": "bi-7hphf6",
+        "id": "bi-4kn2c6",
         "kind": "image",
         "ref": "img-mist-4x3",
         "text": "",
@@ -581,7 +708,7 @@
         "z": 6
       },
       {
-        "id": "bi-d2sv87",
+        "id": "bi-49obw7",
         "kind": "image",
         "ref": "img-field-4x3",
         "text": "",
@@ -592,7 +719,7 @@
         "z": 7
       },
       {
-        "id": "bi-5beff8",
+        "id": "bi-c695o8",
         "kind": "image",
         "ref": "img-lake-4x3",
         "text": "",
@@ -603,7 +730,7 @@
         "z": 8
       },
       {
-        "id": "bi-y6djz9",
+        "id": "bi-exju69",
         "kind": "image",
         "ref": "img-coastal-4x3",
         "text": "",
@@ -614,7 +741,7 @@
         "z": 9
       },
       {
-        "id": "bi-f8sx5a",
+        "id": "bi-ugqaia",
         "kind": "image",
         "ref": "img-evening-4x3",
         "text": "",
@@ -625,7 +752,7 @@
         "z": 10
       },
       {
-        "id": "bi-xlgllb",
+        "id": "bi-epgr3b",
         "kind": "note",
         "text": "Quiet confidence. Think gallery wall labels, not fintech dashboards.",
         "x": 808,
@@ -635,7 +762,7 @@
         "z": 11
       },
       {
-        "id": "bi-inurvc",
+        "id": "bi-7veysc",
         "kind": "type",
         "ref": "text",
         "text": "",
@@ -646,7 +773,7 @@
         "z": 12
       },
       {
-        "id": "bi-1uh1nd",
+        "id": "bi-8rjh4d",
         "kind": "swatch",
         "ref": "sage",
         "text": "",
@@ -657,7 +784,7 @@
         "z": 13
       },
       {
-        "id": "bi-wxsi6e",
+        "id": "bi-i3gtke",
         "kind": "note",
         "text": "Light over land and water — horizons, never subjects.",
         "x": 808,

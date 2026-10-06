@@ -284,5 +284,29 @@ const ops: OpInput[] = [
   { type: "boardArrange", columns: 4, width: 1600, gap: 16 },
 ];
 
-const b = await mutateBrand(slug, ops, { actor: "system", summary: "Seeded example brand" });
+await mutateBrand(slug, ops, { actor: "system", summary: "Seeded example brand" });
+
+// A one-page overview board in Meridian's quieter register: horizons and haze instead of bursts.
+const tile = (id: string, slots: Record<string, string>): OpInput => ({ type: "updateTile", pageId: "overview", id, slots });
+const b = await mutateBrand(
+  slug,
+  [
+    { type: "addBoard", template: "overview", id: "overview", index: 1 },
+    tile("logo", { caption: "Bookkeeping for\nsmall studios" }),
+    tile("swirl", { art: "haze:4" }),
+    tile("hero", {
+      eyebrow: "Quiet ledger",
+      headline: "Money, in its\nright place.",
+      subhead: "The numbers stay true.\nThe work stays first.",
+      art: "bands:3",
+    }),
+    tile("steps", {
+      label: "Meridian, in the background",
+      items: "Reconcile — Accounts matched overnight.\nChase — Invoices followed up, politely.\nPrepare — Taxes ready before you ask.",
+      arts: "haze:2, bands:5, haze:7",
+    }),
+    tile("poster", { headline: "Every invoice, gently chased.", subhead: "Bookkeeping for\nsmall studios.", cta: "Start free", art: "bands:8" }),
+  ],
+  { actor: "system", summary: "Overview board" },
+);
 console.log(`Seeded ${slug}: rev ${b.rev}, ${b.pages.length} pages, ${b.imagery.assets.length} assets, ${b.board.items.length} board items`);

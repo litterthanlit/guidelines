@@ -1,7 +1,7 @@
 "use client";
 
 import type { Brand, LayoutId, Page } from "@guidelines/core";
-import { LAYOUTS } from "@guidelines/core";
+import { LAYOUTS, pageAspect } from "@guidelines/core";
 import { memo, type ComponentType } from "react";
 import {
   ApplicationMockupLayout,
@@ -14,6 +14,7 @@ import {
   StatementLayout,
   TypeSpecimenLayout,
 } from "./layouts";
+import { BoardLayout } from "./board";
 import { EditContext, SlideContext, type EditApi } from "./slots";
 
 const RENDERERS: Record<LayoutId, ComponentType> = {
@@ -26,6 +27,7 @@ const RENDERERS: Record<LayoutId, ComponentType> = {
   "application-mockup": ApplicationMockupLayout,
   "iconography-grid": IconographyLayout,
   "do-dont": DoDontLayout,
+  board: BoardLayout,
 };
 
 /**
@@ -49,10 +51,12 @@ export const Slide = memo(function Slide({
   responsive?: boolean;
 }) {
   const Renderer = RENDERERS[page.layout];
+  const [aw, ah] = pageAspect(page);
   return (
     <div className={`slide-shell ${responsive ? "" : "is-fixed"} ${className ?? ""}`}>
       <section
         className={`slide ${edit ? "is-editable" : ""}`}
+        style={{ ["--slide-ar" as string]: `${aw} / ${ah}` }}
         data-layout={page.layout}
         aria-roledescription="slide"
         aria-label={`Page ${index + 1}: ${page.slots.title || page.slots.headline || LAYOUTS[page.layout].name}`}

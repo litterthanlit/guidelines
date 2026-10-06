@@ -28,7 +28,10 @@ interface StoreValue {
   flashed: Set<string>;
   apply: (ops: OpInput[]) => Promise<void>;
   undo: () => Promise<void>;
-  upload: (file: File, target?: { pageId?: string; slot?: string; append?: boolean; board?: boolean; x?: number; y?: number }) => Promise<string | undefined>;
+  upload: (
+    file: File,
+    target?: { pageId?: string; slot?: string; append?: boolean; tileId?: string; board?: boolean; x?: number; y?: number },
+  ) => Promise<string | undefined>;
   toast: (message: string, tone?: Toast["tone"]) => void;
   dismiss: (id: number) => void;
 }
@@ -229,6 +232,7 @@ export function BrandProvider({ initial, children }: { initial: Brand; children:
           form.set("pageId", target.pageId);
           form.set("slot", target.slot);
           if (target.append) form.set("append", "1");
+          if (target.tileId) form.set("tileId", target.tileId);
         }
         if (target?.board) {
           form.set("board", "1");

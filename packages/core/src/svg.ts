@@ -56,3 +56,17 @@ export function sanitizeSvg(input: string): string {
 export function svgDataUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
+/** Width ÷ height of an SVG from its viewBox (or width/height). 1 when unknown. */
+export function svgAspect(svg: string | undefined): number {
+  if (!svg) return 1;
+  const open = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
+  const vb = /viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(open);
+  let w = vb ? Number(vb[1]) : NaN;
+  let h = vb ? Number(vb[2]) : NaN;
+  if (!(w > 0 && h > 0)) {
+    w = Number(/\swidth\s*=\s*["']?([\d.]+)/i.exec(open)?.[1]);
+    h = Number(/\sheight\s*=\s*["']?([\d.]+)/i.exec(open)?.[1]);
+  }
+  return w > 0 && h > 0 ? Math.min(8, Math.max(0.125, w / h)) : 1;
+}

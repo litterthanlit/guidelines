@@ -6,7 +6,9 @@ export type SlotKind =
   | "lines" // one item per line
   | "asset" // a single asset id
   | "assets" // comma separated asset ids
-  | "option"; // one of `options`
+  | "option" // one of `options`
+  | "art" // procedural artwork spec, "style:seed" (see ART_STYLES)
+  | "arts"; // comma separated artwork specs
 
 export interface SlotSpec {
   key: string;
@@ -43,7 +45,8 @@ export const LAYOUTS: Record<LayoutId, LayoutSpec> = {
     slots: [
       { key: "title", kind: "text", label: "Title", hint: "Usually “Brand Guidelines”.", required: true },
       { key: "subtitle", kind: "text", label: "Subtitle" },
-      { key: "image", kind: "asset", label: "Hero image", hint: "Falls back to a palette gradient." },
+      { key: "image", kind: "asset", label: "Hero image", hint: "Falls back to the artwork, then a palette gradient." },
+      { key: "art", kind: "art", label: "Artwork", hint: 'Procedural artwork "style:seed" used when there is no image, e.g. "burst:2".' },
     ],
   },
   statement: {
@@ -56,6 +59,7 @@ export const LAYOUTS: Record<LayoutId, LayoutSpec> = {
       { key: "headline", kind: "text", label: "Headline", required: true },
       { key: "body", kind: "richtext", label: "Supporting copy" },
       { key: "tone", kind: "option", label: "Tone", options: ["light", "dark"] },
+      { key: "art", kind: "art", label: "Artwork", hint: "Replaces the blurred palette gradient behind the card." },
     ],
   },
   logomark: {
@@ -119,6 +123,25 @@ export const LAYOUTS: Record<LayoutId, LayoutSpec> = {
       { key: "dont", kind: "lines", label: "Don't", hint: "One rule per line." },
       { key: "doImage", kind: "asset", label: "Do example" },
       { key: "dontImage", kind: "asset", label: "Don't example" },
+    ],
+  },
+  board: {
+    id: "board",
+    name: "Brand board",
+    description:
+      "A bento composition of tiles on a 12-column grid: logo, hero, artwork, palette, type, process steps, poster, web mockup. The one-page identity overview. Start from a template with add_board, then edit tiles.",
+    reads: ["logo", "colors", "typography", "imagery", "meta"],
+    slots: [
+      { key: "title", kind: "text", label: "Board name", hint: "Shown in the page list, not on the board." },
+      { key: "aspect", kind: "option", label: "Aspect", options: ["3:2", "16:9", "4:3", "5:4", "1:1", "4:5"] },
+      { key: "rows", kind: "option", label: "Rows", options: ["3", "4", "6", "8", "9", "10", "12"] },
+      {
+        key: "frame",
+        kind: "option",
+        label: "Frame",
+        hint: "rules = hairlines between tiles; tiles = edge-to-edge; gallery = labeled tiles on a gray canvas.",
+        options: ["rules", "tiles", "gallery"],
+      },
     ],
   },
 };

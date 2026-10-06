@@ -1,0 +1,804 @@
+{
+  "schemaVersion": 1,
+  "slug": "hypher",
+  "rev": 5,
+  "updatedAt": "2026-10-06T11:49:41.929Z",
+  "updatedBy": "system",
+  "meta": {
+    "name": "Hypher",
+    "tagline": "Project memory for coding agents.",
+    "story": "Hypher keeps the context behind your code — the ideas, experiments, trade-offs and dead ends that never land in git — and hands it to every coding agent you work with. You don't explain the project again.",
+    "audience": "Developers and small teams who build with AI coding agents every day.",
+    "voice": [
+      "Precise",
+      "Calm",
+      "Technical",
+      "Warm"
+    ],
+    "keywords": [
+      "Ideas",
+      "Experiments",
+      "Trade-offs",
+      "Dead ends",
+      "Decisions"
+    ]
+  },
+  "logo": {
+    "wordmark": "hypher",
+    "markSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 28\" fill=\"currentColor\"><path d=\"M0 2H44V10H77C81.5 10 82.5 2 88 2H111L120 26H88C82.5 26 81.5 18 77 18H44V26H0Z\"/></svg>",
+    "clearSpace": 0.5,
+    "minSize": 16,
+    "notes": "A conduit: a wide block of context narrows into a single channel and opens out again, carried forward. Always horizontal; never stack the wordmark.",
+    "font": {
+      "family": "Michroma",
+      "source": "google",
+      "weights": [
+        400
+      ],
+      "italic": false,
+      "fallback": "system-ui, sans-serif",
+      "usage": "Wordmark only."
+    },
+    "wordmarkWeight": 400,
+    "wordmarkTracking": -0.01
+  },
+  "colors": [
+    {
+      "id": "ivory",
+      "name": "Ivory",
+      "hex": "#F3F1EA",
+      "role": "background",
+      "usage": "Pages, cards and generous space.",
+      "traits": [
+        "Balance",
+        "Legibility",
+        "Space"
+      ],
+      "scale": {
+        "50": "#F7F7F4",
+        "100": "#ECEBE8",
+        "200": "#DAD9D5",
+        "300": "#C2C1BC",
+        "400": "#A3A19C",
+        "500": "#888680",
+        "600": "#6D6C66",
+        "700": "#575550",
+        "800": "#41403C",
+        "900": "#2C2B28",
+        "950": "#191816"
+      }
+    },
+    {
+      "id": "charcoal",
+      "name": "Charcoal",
+      "hex": "#171A1B",
+      "role": "text",
+      "usage": "Type, rules and dark surfaces.",
+      "traits": [
+        "Depth",
+        "Focus",
+        "Clarity"
+      ],
+      "scale": {
+        "50": "#F5F7F8",
+        "100": "#E9EBEC",
+        "200": "#D7D9DA",
+        "300": "#BEC1C2",
+        "400": "#9EA2A3",
+        "500": "#838788",
+        "600": "#696C6E",
+        "700": "#535657",
+        "800": "#3E4041",
+        "900": "#2A2C2C",
+        "950": "#171819"
+      }
+    },
+    {
+      "id": "signal-blue",
+      "name": "Signal Blue",
+      "hex": "#1689D4",
+      "role": "primary",
+      "usage": "Artwork, links and the memory signal.",
+      "traits": [
+        "Signal",
+        "Memory",
+        "Trust"
+      ],
+      "scale": {
+        "50": "#E4FAFF",
+        "100": "#CEF0FF",
+        "200": "#ABE0FF",
+        "300": "#82C8FF",
+        "400": "#50A9EF",
+        "500": "#1F8DD7",
+        "600": "#0071B6",
+        "700": "#005995",
+        "800": "#004373",
+        "900": "#002E51",
+        "950": "#001A2F"
+      }
+    },
+    {
+      "id": "ice-blue",
+      "name": "Ice Blue",
+      "hex": "#80C7EE",
+      "role": "secondary",
+      "usage": "Line art and highlights on charcoal.",
+      "traits": [
+        "Flow",
+        "Structure",
+        "Intelligence"
+      ],
+      "scale": {
+        "50": "#E0FCFF",
+        "100": "#CFF1FF",
+        "200": "#B6E0F8",
+        "300": "#95C9E6",
+        "400": "#6CAACD",
+        "500": "#498FB4",
+        "600": "#307496",
+        "700": "#205C79",
+        "800": "#15455C",
+        "900": "#0C2F40",
+        "950": "#061B25"
+      }
+    },
+    {
+      "id": "signal-orange",
+      "name": "Signal Orange",
+      "hex": "#F48254",
+      "role": "accent",
+      "usage": "The human moment: one spark per view.",
+      "traits": [
+        "Decisions",
+        "Human input",
+        "Momentum"
+      ],
+      "scale": {
+        "50": "#FFF0E4",
+        "100": "#FFE0CF",
+        "200": "#FFC7AC",
+        "300": "#FFA885",
+        "400": "#E88259",
+        "500": "#CF6133",
+        "600": "#AE4819",
+        "700": "#8D3609",
+        "800": "#6D2602",
+        "900": "#4C1902",
+        "950": "#2D0D02"
+      }
+    }
+  ],
+  "typography": {
+    "display": {
+      "family": "Inter Tight",
+      "source": "google",
+      "weights": [
+        400,
+        500,
+        700
+      ],
+      "italic": false,
+      "fallback": "system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "usage": "Headlines. Bold, tight, short — three to five words."
+    },
+    "text": {
+      "family": "Inter",
+      "source": "google",
+      "weights": [
+        400,
+        500,
+        600
+      ],
+      "italic": false,
+      "fallback": "system-ui, -apple-system, 'Segoe UI', sans-serif",
+      "usage": "Interface and body copy."
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "source": "google",
+      "weights": [
+        400,
+        500
+      ],
+      "italic": false,
+      "fallback": "ui-monospace, 'SF Mono', Menlo, monospace",
+      "usage": "Labels, captions and subheads — tracked caps for labels, sentence case for copy."
+    },
+    "scale": [
+      {
+        "name": "Display",
+        "font": "display",
+        "size": 96,
+        "lineHeight": 0.95,
+        "tracking": -0.045,
+        "weight": 700
+      },
+      {
+        "name": "Headline",
+        "font": "display",
+        "size": 48,
+        "lineHeight": 1,
+        "tracking": -0.035,
+        "weight": 700
+      },
+      {
+        "name": "Subhead",
+        "font": "mono",
+        "size": 20,
+        "lineHeight": 1.4,
+        "tracking": 0.01,
+        "weight": 400
+      },
+      {
+        "name": "Body",
+        "font": "text",
+        "size": 16,
+        "lineHeight": 1.5,
+        "tracking": 0,
+        "weight": 400
+      },
+      {
+        "name": "Label",
+        "font": "mono",
+        "size": 11,
+        "lineHeight": 1.6,
+        "tracking": 0.22,
+        "weight": 400
+      }
+    ]
+  },
+  "imagery": {
+    "style": "Grainy, sprayed light: rays and ribbons of signal blue bursting from a dark core with a spark of orange. Fine line art on charcoal for systems. Lots of ivory space. No people, no screenshots.",
+    "assets": [
+      {
+        "id": "art-burst-2-light",
+        "file": "assets/burst-2-light.svg",
+        "alt": "Blue rays bursting from a dark core with an orange halo",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "burst:2",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "id": "art-swirl-3-light",
+        "file": "assets/swirl-3-light.svg",
+        "alt": "Sweeping blue ribbons sprayed across ivory",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "swirl:3",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "id": "art-converge-2-light",
+        "file": "assets/converge-2-light.svg",
+        "alt": "Blue streaks converging to a bright orange point",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "converge:2",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "id": "art-flow-4-dark",
+        "file": "assets/flow-4-dark.svg",
+        "alt": "Fine ice-blue lines funnelling through a glowing channel on charcoal",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "flow:4",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "id": "art-strata-2-dark",
+        "file": "assets/strata-2-dark.svg",
+        "alt": "Stacked wireframe planes with one glowing layer",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "strata:2",
+        "width": 1600,
+        "height": 1000
+      },
+      {
+        "id": "art-diverge-3-light",
+        "file": "assets/diverge-3-light.svg",
+        "alt": "Rays fanning out from a bright point",
+        "caption": "",
+        "credit": "Procedural · guidelines-art-v1",
+        "prompt": "diverge:3",
+        "width": 1600,
+        "height": 1000
+      }
+    ]
+  },
+  "icons": [],
+  "pages": [
+    {
+      "id": "cover",
+      "layout": "cover",
+      "slots": {
+        "title": "Keep the context.",
+        "subtitle": "Brand guidelines · Edition 01",
+        "art": "burst:2"
+      }
+    },
+    {
+      "id": "overview",
+      "layout": "board",
+      "slots": {
+        "title": "Overview",
+        "aspect": "3:2",
+        "rows": "12",
+        "frame": "rules"
+      },
+      "tiles": [
+        {
+          "id": "logo",
+          "kind": "logo",
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "h": 3,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "show": "lockup",
+            "align": "left",
+            "size": "l",
+            "caption": "Project memory\nfor coding agents"
+          }
+        },
+        {
+          "id": "swirl",
+          "kind": "art",
+          "x": 0,
+          "y": 3,
+          "w": 3,
+          "h": 6,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "art": "swirl:3"
+          }
+        },
+        {
+          "id": "palette",
+          "kind": "palette",
+          "x": 0,
+          "y": 9,
+          "w": 3,
+          "h": 3,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "style": "chips"
+          }
+        },
+        {
+          "id": "hero",
+          "kind": "hero",
+          "x": 3,
+          "y": 0,
+          "w": 6,
+          "h": 8,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "eyebrow": "Signal memory",
+            "headline": "Keep\nthe context.",
+            "subhead": "You don’t explain\nthe project again.",
+            "art": "burst:2",
+            "align": "top-left",
+            "size": "xl"
+          }
+        },
+        {
+          "id": "steps",
+          "kind": "steps",
+          "x": 3,
+          "y": 8,
+          "w": 6,
+          "h": 4,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "label": "Project memory in motion",
+            "items": "Capture — Ideas, decisions, and progress.\nRemember — Preserved across sessions.\nResume — Pick up exactly where you left off.",
+            "arts": "converge:2, burst:7, diverge:3",
+            "variant": "sequence"
+          }
+        },
+        {
+          "id": "logo-dark",
+          "kind": "logo",
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 5,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "show": "lockup",
+            "align": "center",
+            "size": "l"
+          }
+        },
+        {
+          "id": "poster",
+          "kind": "poster",
+          "x": 9,
+          "y": 5,
+          "w": 3,
+          "h": 7,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "headline": "You don’t explain the project again.",
+            "subhead": "Project memory\nfor coding agents.",
+            "cta": "Start capturing",
+            "logo": "top",
+            "fade": "top",
+            "art": "swirl:8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "layout": "board",
+      "slots": {
+        "title": "System",
+        "aspect": "3:2",
+        "rows": "12",
+        "frame": "tiles"
+      },
+      "tiles": [
+        {
+          "id": "logo",
+          "kind": "logo",
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "h": 2,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "show": "lockup",
+            "align": "left",
+            "size": "l",
+            "caption": "Context engine\nProject memory for coding agents."
+          }
+        },
+        {
+          "id": "type",
+          "kind": "type",
+          "x": 0,
+          "y": 2,
+          "w": 3,
+          "h": 4,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "font": "display",
+            "sample": "AaBb",
+            "detail": "full"
+          }
+        },
+        {
+          "id": "hero",
+          "kind": "hero",
+          "x": 3,
+          "y": 0,
+          "w": 6,
+          "h": 6,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "headline": "Every session.\nSame context.",
+            "subhead": "Project memory for coding agents.\nRetaining the decisions that never land in git.",
+            "subStyle": "label",
+            "art": "flow:4",
+            "mark": "center",
+            "fade": "top",
+            "align": "top-left",
+            "size": "l",
+            "index": "Ideas\nExperiments\nTrade offs\nDead ends\nDecisions",
+            "noteLeft": "Context\naligns\nagents",
+            "noteRight": "From fragmented\nto continuous"
+          }
+        },
+        {
+          "id": "palette",
+          "kind": "palette",
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 6,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "style": "columns",
+            "header": "lockup",
+            "caption": "Context engine\nProject memory for coding agents.",
+            "colors": "charcoal,ice-blue,signal-orange,ivory"
+          }
+        },
+        {
+          "id": "steps",
+          "kind": "steps",
+          "x": 0,
+          "y": 6,
+          "w": 5,
+          "h": 6,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "label": "The context engine",
+            "items": "Capture — Automatically capture the full context of your work.\nPreserve — Retain the decisions, experiments and insights that never land in git.\nContinue — Give coding agents the context to pick up where you left off.",
+            "arts": "strata:2, strata:5, flow:6",
+            "variant": "columns"
+          }
+        },
+        {
+          "id": "web",
+          "kind": "web",
+          "x": 5,
+          "y": 6,
+          "w": 4,
+          "h": 6,
+          "tone": "light",
+          "label": "",
+          "slots": {
+            "variant": "landing",
+            "nav": "Product\nDocs\nAbout",
+            "headline": "Pick up where you left off.",
+            "subhead": "Project memory for coding agents.",
+            "cta": "Start capturing",
+            "art": "flow:9"
+          }
+        },
+        {
+          "id": "poster",
+          "kind": "poster",
+          "x": 9,
+          "y": 6,
+          "w": 3,
+          "h": 6,
+          "tone": "dark",
+          "label": "",
+          "slots": {
+            "headline": "The\ndecisions\nstay.",
+            "size": "l",
+            "logo": "bottom",
+            "caption": "Project memory\nfor coding agents",
+            "art": "flow:12",
+            "fade": "none"
+          }
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "layout": "board",
+      "slots": {
+        "title": "Index",
+        "aspect": "5:4",
+        "rows": "3",
+        "frame": "gallery"
+      },
+      "tiles": [
+        {
+          "id": "logo",
+          "kind": "logo",
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 1,
+          "tone": "dark",
+          "label": "Logo",
+          "slots": {
+            "show": "lockup",
+            "align": "center",
+            "size": "l",
+            "markStyle": "stripes"
+          }
+        },
+        {
+          "id": "orb",
+          "kind": "logo",
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 1,
+          "tone": "light",
+          "label": "Logo orb",
+          "slots": {
+            "show": "lockup",
+            "align": "bottom-right",
+            "size": "s",
+            "art": "orb:2"
+          }
+        },
+        {
+          "id": "illustrations",
+          "kind": "steps",
+          "x": 0,
+          "y": 1,
+          "w": 6,
+          "h": 1,
+          "tone": "panel",
+          "label": "Illustrations",
+          "slots": {
+            "items": "Capture the context\nPreserve decisions\nContinue anywhere",
+            "arts": "stripes:2, prism:2, star:3",
+            "variant": "cards"
+          }
+        },
+        {
+          "id": "type",
+          "kind": "hero",
+          "x": 6,
+          "y": 1,
+          "w": 6,
+          "h": 1,
+          "tone": "dark",
+          "label": "Type",
+          "slots": {
+            "headline": "Every session.\nSame context.",
+            "subhead": "Trusted by teams who ship with agents",
+            "align": "center",
+            "size": "m",
+            "mark": "center"
+          }
+        },
+        {
+          "id": "web",
+          "kind": "web",
+          "x": 0,
+          "y": 2,
+          "w": 6,
+          "h": 1,
+          "tone": "light",
+          "label": "Web",
+          "slots": {
+            "variant": "index",
+            "chrome": "browser",
+            "nav": "About\nProduct\nContact",
+            "links": "Capture context\nDiscover decisions\nPreserve experiments\nShare across agents\nResume any session\nAudit trade-offs",
+            "markStyle": "stripes"
+          }
+        },
+        {
+          "id": "pattern",
+          "kind": "art",
+          "x": 6,
+          "y": 2,
+          "w": 6,
+          "h": 1,
+          "tone": "dark",
+          "label": "Pattern",
+          "slots": {
+            "art": "grid:3"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logomark",
+      "layout": "logomark",
+      "slots": {
+        "title": "Logomark",
+        "show": "lockup",
+        "body": "A wide block of context narrows into one channel and opens out again — memory, carried forward. Keep half the mark's height clear on every side."
+      }
+    },
+    {
+      "id": "palette",
+      "layout": "palette",
+      "slots": {
+        "title": "Color",
+        "body": "Ivory and charcoal carry the system. Signal Blue is the memory itself; Signal Orange marks the human decision — one spark per view."
+      }
+    },
+    {
+      "id": "type",
+      "layout": "type-specimen",
+      "slots": {
+        "title": "Typeface",
+        "font": "display",
+        "body": "Inter Tight Bold, set tight, for short confident headlines. IBM Plex Mono in tracked caps for every label."
+      }
+    },
+    {
+      "id": "imagery",
+      "layout": "imagery-grid",
+      "slots": {
+        "title": "Imagery",
+        "body": "Light that behaves like memory: sprayed, grainy, always moving toward or away from a single point.",
+        "images": "art-burst-2-light,art-swirl-3-light,art-converge-2-light,art-flow-4-dark,art-strata-2-dark,art-diverge-3-light"
+      }
+    }
+  ],
+  "board": {
+    "items": [
+      {
+        "id": "bi-62zks1",
+        "kind": "image",
+        "ref": "art-burst-2-light",
+        "text": "",
+        "x": 0,
+        "y": 0,
+        "w": 423,
+        "h": 264,
+        "z": 1
+      },
+      {
+        "id": "bi-1q30g2",
+        "kind": "image",
+        "ref": "art-flow-4-dark",
+        "text": "",
+        "x": 439,
+        "y": 0,
+        "w": 423,
+        "h": 264,
+        "z": 2
+      },
+      {
+        "id": "bi-ghivm3",
+        "kind": "swatch",
+        "ref": "signal-blue",
+        "text": "",
+        "x": 877,
+        "y": 0,
+        "w": 423,
+        "h": 423,
+        "z": 3
+      },
+      {
+        "id": "bi-1mh7k4",
+        "kind": "swatch",
+        "ref": "signal-orange",
+        "text": "",
+        "x": 0,
+        "y": 280,
+        "w": 423,
+        "h": 423,
+        "z": 4
+      },
+      {
+        "id": "bi-ra8xq5",
+        "kind": "type",
+        "ref": "display",
+        "text": "Keep the context.",
+        "x": 439,
+        "y": 280,
+        "w": 423,
+        "h": 201,
+        "z": 5
+      },
+      {
+        "id": "bi-6pfna6",
+        "kind": "image",
+        "ref": "art-swirl-3-light",
+        "text": "",
+        "x": 877,
+        "y": 439,
+        "w": 423,
+        "h": 264,
+        "z": 6
+      },
+      {
+        "id": "bi-gqhfl7",
+        "kind": "note",
+        "text": "Grain over gloss. Every image moves toward or away from one point.",
+        "x": 439,
+        "y": 497,
+        "w": 423,
+        "h": 225,
+        "z": 7
+      }
+    ]
+  }
+}

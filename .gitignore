@@ -7,12 +7,13 @@ dist
 .DS_Store
 coverage
 
-# User brand projects stay local; the seed example is committed.
+# User brand projects stay local; the seed examples are committed.
 brands/*
 !brands/meridian
-brands/meridian/history
-brands/meridian/activity.jsonl
-brands/meridian/.lock
+!brands/hypher
+brands/*/history
+brands/*/activity.jsonl
+brands/*/.lock
+brands/*/exports
 next-env.d.ts
 apps/web/smoke
-brands/meridian/exports

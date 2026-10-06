@@ -29,10 +29,11 @@ async function getBrowser(): Promise<Browser> {
   return browser;
 }
 
-export async function renderPage(slug: string, pageId: string, width = 1440): Promise<Buffer> {
+/** `ratio` is height ÷ width of the page (9/16 for guideline spreads; boards vary). */
+export async function renderPage(slug: string, pageId: string, width = 1440, ratio = 9 / 16): Promise<Buffer> {
   const url = `${appUrl()}/render/${encodeURIComponent(slug)}/${encodeURIComponent(pageId)}`;
   const b = await getBrowser();
-  const height = Math.round((width * 9) / 16);
+  const height = Math.round(width * ratio);
   const page = await b.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
   try {
     const res = await page.goto(url, { waitUntil: "networkidle", timeout: 20_000 }).catch((err: Error) => {

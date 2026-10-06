@@ -1,5 +1,6 @@
 "use client";
 
+import { pageAspect } from "@guidelines/core";
 import { useEffect, useRef, useState } from "react";
 import { Slide } from "../brand/Slide";
 import { useStore } from "./store";
@@ -30,6 +31,7 @@ export function Present({ start, onClose }: { start: number; onClose: () => void
 
   const page = brand.pages[Math.min(i, count - 1)];
   if (!page) return null;
+  const [aw, ah] = pageAspect(page);
 
   return (
     <div
@@ -44,7 +46,7 @@ export function Present({ start, onClose }: { start: number; onClose: () => void
         setI((n) => (x > 0.5 ? Math.min(count - 1, n + 1) : Math.max(0, n - 1)));
       }}
     >
-      <div key={page.id} className="animate-fade-up" style={{ width: "min(100vw, calc(100dvh * 16 / 9))" }}>
+      <div key={page.id} className="animate-fade-up" style={{ width: `min(100vw, calc(100dvh * ${aw} / ${ah}))` }}>
         <Slide brand={brand} page={page} index={i} />
       </div>
       <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-center justify-between p-4 text-[12px] text-white/60">

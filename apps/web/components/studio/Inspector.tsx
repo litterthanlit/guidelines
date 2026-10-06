@@ -18,12 +18,24 @@ import {
 } from "@guidelines/core";
 import { useRef, useState } from "react";
 import { assetUrl } from "../brand/theme";
+import { ArtPicker, ArtsField } from "./ArtPicker";
+import { BoardTiles } from "./BoardInspector";
 import { Field, Section, Segmented, TextArea, TextInput, useDraft } from "./fields";
 import { useStore, type ActivityEntry } from "./store";
 
 type Tab = "page" | "brand" | "activity";
 
-export function Inspector({ pageId, onSelect }: { pageId?: string; onSelect: (id: string) => void }) {
+export function Inspector({
+  pageId,
+  onSelect,
+  tileId,
+  onSelectTile,
+}: {
+  pageId?: string;
+  onSelect: (id: string) => void;
+  tileId?: string;
+  onSelectTile: (pageId: string, tileId: string | null) => void;
+}) {
   const [tab, setTab] = useState<Tab>("page");
   const { brand } = useStore();
   const page = brand.pages.find((p) => p.id === pageId);
@@ -45,7 +57,12 @@ export function Inspector({ pageId, onSelect }: { pageId?: string; onSelect: (id
         ))}
       </div>
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
-        {tab === "page" && (page ? <PagePanel key={page.id} page={page} onSelect={onSelect} /> : <p className="p-5 text-ink-3">Select a page.</p>)}
+        {tab === "page" &&
+          (page ? (
+            <PagePanel key={page.id} page={page} onSelect={onSelect} tileId={tileId} onSelectTile={onSelectTile} />
+          ) : (
+            <p className="p-5 text-ink-3">Select a page.</p>
+          ))}
         {tab === "brand" && <BrandPanel />}
         {tab === "activity" && <ActivityPanel />}
       </div>
@@ -55,7 +72,17 @@ export function Inspector({ pageId, onSelect }: { pageId?: string; onSelect: (id
 
 /* ───────────────────────────── Page ───────────────────────────── */
 
-function PagePanel({ page, onSelect }: { page: Page; onSelect: (id: string) => void }) {
+function PagePanel({
+  page,
+  onSelect,
+  tileId,
+  onSelectTile,
+}: {
+  page: Page;
+  onSelect: (id: string) => void;
+  tileId?: string;
+  onSelectTile: (pageId: string, tileId: string | null) => void;
+}) {
   const { brand, apply } = useStore();
   const spec = LAYOUTS[page.layout];
   const index = brand.pages.indexOf(page);
@@ -81,11 +108,12 @@ function PagePanel({ page, onSelect }: { page: Page; onSelect: (id: string) => v
           )}
         </Field>
       </Section>
-      <Section title="Content">
+      <Section title={page.layout === "board" ? "Board" : "Content"}>
         {spec.slots.map((s) => (
-          <SlotField key={s.key} spec={s} page={page} brand={brand} onChange={(v) => set(s.key, v)} />
+          <SlotField key={s.key} spec={s} value={page.slots[s.key] ?? ""} target={{ pageId: page.id }} onChange={(v) => set(s.key, v)} />
         ))}
       </Section>
+      {page.layout === "board" && <BoardTiles page={page} tileId={tileId} onSelectTile={(id) => onSelectTile(page.id, id)} />}
       <Section title="Page actions">
         <div className="flex flex-wrap gap-2">
           <button
@@ -113,8 +141,25 @@ function PagePanel({ page, onSelect }: { page: Page; onSelect: (id: string) => v
   );
 }
 
-function SlotField({ spec, page, brand, onChange }: { spec: SlotSpec; page: Page; brand: Brand; onChange: (v: string | null) => void }) {
-  const value = page.slots[spec.key] ?? "";
+export interface SlotTarget {
+  pageId: string;
+  tileId?: string;
+}
+
+export function SlotField({
+  spec,
+  value,
+  target,
+  tone,
+  onChange,
+}: {
+  spec: SlotSpec;
+  value: string;
+  target: SlotTarget;
+  /** Surface the slot renders on, for artwork previews. */
+  tone?: "light" | "dark";
+  onChange: (v: string | null) => void;
+}) {
   const commit = (v: string) => onChange(v.trim() ? v : null);
   switch (spec.kind) {
     case "text":
@@ -126,24 +171,16 @@ function SlotField({ spec, page, brand, onChange }: { spec: SlotSpec; page: Page
       return <Segmented label={spec.label} value={value || spec.options?.[0] || ""} options={spec.options ?? []} onChange={onChange} />;
     case "asset":
     case "assets":
-      return <AssetPicker spec={spec} page={page} brand={brand} value={value} onChange={onChange} />;
+      return <AssetPicker spec={spec} target={target} value={value} onChange={onChange} />;
+    case "art":
+      return <ArtPicker label={spec.label} hint={spec.hint} value={value} tone={tone ?? "light"} onChange={onChange} />;
+    case "arts":
+      return <ArtsField label={spec.label} hint={spec.hint} value={value} tone={tone ?? "light"} onCommit={commit} />;
   }
 }
 
-function AssetPicker({
-  spec,
-  page,
-  brand,
-  value,
-  onChange,
-}: {
-  spec: SlotSpec;
-  page: Page;
-  brand: Brand;
-  value: string;
-  onChange: (v: string | null) => void;
-}) {
-  const { upload } = useStore();
+function AssetPicker({ spec, target, value, onChange }: { spec: SlotSpec; target: SlotTarget; value: string; onChange: (v: string | null) => void }) {
+  const { brand, upload } = useStore();
   const input = useRef<HTMLInputElement>(null);
   const multi = spec.kind === "assets";
   const chosen = value
@@ -173,7 +210,8 @@ function AssetPicker({
           className="sr-only"
           tabIndex={-1}
           onChange={(e) => {
-            for (const f of [...(e.target.files ?? [])].slice(0, multi ? 6 : 1)) void upload(f, { pageId: page.id, slot: spec.key, append: multi });
+            for (const f of [...(e.target.files ?? [])].slice(0, multi ? 6 : 1))
+              void upload(f, { pageId: target.pageId, tileId: target.tileId, slot: spec.key, append: multi });
             e.target.value = "";
           }}
         />

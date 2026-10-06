@@ -10,7 +10,8 @@
     "start": "node bin/guidelines-mcp.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx scripts/seed-example.ts",
+    "seed": "tsx scripts/seed-example.ts && tsx scripts/seed-hypher.ts",
+    "seed:hypher": "tsx scripts/seed-hypher.ts",
     "e2e": "tsx scripts/e2e.ts"
   },
   "dependencies": {

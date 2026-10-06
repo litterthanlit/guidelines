@@ -1,13 +1,43 @@
 import { z } from "zod";
 import { buildScale } from "./color";
 import { DEFAULT_SECTIONS, LAYOUTS } from "./layouts";
-import { Asset, Brand, BoardItem, BoardItemKind, ColorRole, Font, Hex, Icon, LayoutId, Logo, Meta, TypeStyle, type Brand as BrandT } from "./schema";
+import {
+  Asset,
+  Brand,
+  BOARD_COLUMNS,
+  BoardItem,
+  BoardItemKind,
+  ColorRole,
+  Font,
+  Hex,
+  Icon,
+  LayoutId,
+  Logo,
+  Meta,
+  TileKind,
+  TileTone,
+  TypeStyle,
+  type Brand as BrandT,
+  type Page,
+  type Tile,
+} from "./schema";
 import { sanitizeSvg } from "./svg";
+import { BOARD_TEMPLATES, boardRows, findSpot, TILES } from "./tiles";
 
 /**
  * Every change to a brand — from the agent or the designer — is expressed as
  * one of these ops and applied by `applyOps`. Pure: never mutates its input.
  */
+
+/**
+ * `schema.partial()` without field defaults. In zod 4, defaults still fire
+ * inside `.partial()`, so a patch like `{ tagline }` would otherwise reset every
+ * other defaulted field (story, voice, wordmark…) to empty.
+ */
+function patchOf<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  const shape = Object.fromEntries(Object.entries(schema.shape).map(([k, v]) => [k, v instanceof z.ZodDefault ? v.unwrap() : v]));
+  return z.object(shape as T).partial();
+}
 
 const ColorInput = z.object({
   id: z.string().optional(),
@@ -15,14 +45,34 @@ const ColorInput = z.object({
   hex: Hex,
   role: ColorRole,
   usage: z.string().optional(),
+  traits: z.array(z.string()).optional(),
 });
 
-const BoardItemInput = BoardItem.partial({ id: true, x: true, y: true, w: true, h: true, z: true }).extend({
+const TileInput = z.object({
+  id: z.string().optional(),
+  kind: TileKind,
+  x: z.number().int().min(0).optional(),
+  y: z.number().int().min(0).optional(),
+  w: z.number().int().min(1).optional(),
+  h: z.number().int().min(1).optional(),
+  tone: TileTone.optional(),
+  label: z.string().optional(),
+  slots: z.record(z.string(), z.string()).optional(),
+});
+export type TileInput = z.infer<typeof TileInput>;
+
+const BoardItemInput = BoardItem.extend({
+  id: z.string().optional(),
+  x: z.number().optional(),
+  y: z.number().optional(),
+  w: z.number().positive().optional(),
+  h: z.number().positive().optional(),
+  z: z.number().int().optional(),
   kind: BoardItemKind,
 });
 
 export const Op = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("updateMeta"), patch: Meta.partial() }),
+  z.object({ type: z.literal("updateMeta"), patch: patchOf(Meta) }),
   z.object({ type: z.literal("setColors"), colors: z.array(ColorInput).min(1), replace: z.boolean().default(true) }),
   z.object({ type: z.literal("updateColor"), id: z.string(), patch: ColorInput.partial() }),
   z.object({ type: z.literal("removeColor"), id: z.string() }),
@@ -35,11 +85,11 @@ export const Op = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("setLogo"),
-    patch: Logo.partial().extend({ markSvg: z.string().nullable().optional() }),
+    patch: patchOf(Logo).extend({ markSvg: z.string().nullable().optional(), font: Font.nullable().optional() }),
   }),
   z.object({ type: z.literal("setImageryStyle"), style: z.string() }),
   z.object({ type: z.literal("addAsset"), asset: Asset }),
-  z.object({ type: z.literal("updateAsset"), id: z.string(), patch: Asset.partial().omit({ id: true, file: true }) }),
+  z.object({ type: z.literal("updateAsset"), id: z.string(), patch: patchOf(Asset).omit({ id: true, file: true }) }),
   z.object({ type: z.literal("removeAsset"), id: z.string() }),
   z.object({
     type: z.literal("setIcons"),
@@ -60,10 +110,28 @@ export const Op = z.discriminatedUnion("type", [
     slots: z.record(z.string(), z.string().nullable()).default({}),
   }),
   z.object({ type: z.literal("removePage"), id: z.string() }),
+  z.object({
+    type: z.literal("addBoard"),
+    /** A BOARD_TEMPLATES id, or "blank". */
+    template: z.string().default("overview"),
+    id: z.string().optional(),
+    index: z.number().int().min(0).optional(),
+    title: z.string().optional(),
+  }),
+  z.object({ type: z.literal("addTiles"), pageId: z.string(), tiles: z.array(TileInput).min(1) }),
+  z.object({
+    type: z.literal("updateTile"),
+    pageId: z.string(),
+    id: z.string(),
+    patch: TileInput.omit({ id: true, slots: true }).partial().default({}),
+    slots: z.record(z.string(), z.string().nullable()).default({}),
+  }),
+  z.object({ type: z.literal("removeTile"), pageId: z.string(), id: z.string() }),
+  z.object({ type: z.literal("setTiles"), pageId: z.string(), tiles: z.array(TileInput) }),
   z.object({ type: z.literal("reorderPages"), ids: z.array(z.string()) }),
   z.object({ type: z.literal("scaffoldPages") }),
   z.object({ type: z.literal("boardAdd"), items: z.array(BoardItemInput).min(1) }),
-  z.object({ type: z.literal("boardUpdate"), id: z.string(), patch: BoardItem.partial().omit({ id: true }) }),
+  z.object({ type: z.literal("boardUpdate"), id: z.string(), patch: patchOf(BoardItem).omit({ id: true }) }),
   z.object({ type: z.literal("boardRemove"), id: z.string() }),
   z.object({
     type: z.literal("boardArrange"),
@@ -134,6 +202,16 @@ export function describeOp(op: Op): string {
       return `Edited page ${op.id}`;
     case "removePage":
       return `Removed page ${op.id}`;
+    case "addBoard":
+      return `Added ${BOARD_TEMPLATES[op.template]?.name ?? "blank"} board`;
+    case "addTiles":
+      return `Added ${op.tiles.map((t) => TILES[t.kind].name.toLowerCase()).join(", ")} tile${op.tiles.length === 1 ? "" : "s"}`;
+    case "updateTile":
+      return `Edited ${op.id} tile`;
+    case "removeTile":
+      return `Removed ${op.id} tile`;
+    case "setTiles":
+      return `Rebuilt board ${op.pageId}`;
     case "reorderPages":
       return "Reordered pages";
     case "scaffoldPages":
@@ -163,6 +241,7 @@ function applyOne(b: BrandT, op: Op): BrandT {
         hex: c.hex,
         role: c.role,
         usage: c.usage ?? "",
+        traits: c.traits ?? [],
         scale: buildScale(c.hex),
       }));
       return { ...b, colors: [...base, ...added] };
@@ -201,10 +280,12 @@ function applyOne(b: BrandT, op: Op): BrandT {
     }
 
     case "setLogo": {
-      const { markSvg, ...rest } = stripUndefined(op.patch);
+      const { markSvg, font, ...rest } = stripUndefined(op.patch);
       const logo = { ...b.logo, ...rest };
       if (markSvg === null) delete logo.markSvg;
       else if (markSvg !== undefined) logo.markSvg = sanitizeSvg(markSvg);
+      if (font === null) delete logo.font;
+      else if (font !== undefined) logo.font = font;
       return { ...b, logo };
     }
 
@@ -236,10 +317,9 @@ function applyOne(b: BrandT, op: Op): BrandT {
         b.imagery.assets.some((a) => a.id === op.id),
         `No asset with id "${op.id}".`,
       );
-      const pages = b.pages.map((p) => ({
-        ...p,
-        slots: Object.fromEntries(
-          Object.entries(p.slots).map(([k, v]) => [
+      const without = (slots: Record<string, string>) =>
+        Object.fromEntries(
+          Object.entries(slots).map(([k, v]) => [
             k,
             v
               .split(",")
@@ -247,7 +327,11 @@ function applyOne(b: BrandT, op: Op): BrandT {
               .filter((s) => s !== op.id)
               .join(","),
           ]),
-        ),
+        );
+      const pages = b.pages.map((p) => ({
+        ...p,
+        slots: without(p.slots),
+        ...(p.tiles ? { tiles: p.tiles.map((t) => ({ ...t, slots: without(t.slots) })) } : {}),
       }));
       return {
         ...b,
@@ -306,12 +390,71 @@ function applyOne(b: BrandT, op: Op): BrandT {
       return { ...b, pages: ordered };
     }
 
+    case "addBoard": {
+      const taken = new Set(b.pages.map((p) => p.id));
+      let draft: { slots: Record<string, string>; tiles: TileInput[] };
+      if (op.template === "blank") {
+        draft = { slots: { title: "Board", aspect: "3:2", rows: "12", frame: "rules" }, tiles: [] };
+      } else {
+        const tpl = BOARD_TEMPLATES[op.template];
+        ensure(!!tpl, `No board template "${op.template}". Templates: ${Object.keys(BOARD_TEMPLATES).join(", ")}, blank.`);
+        draft = tpl.build(b);
+      }
+      const id = uniqueId(slugify(op.id ?? (op.template === "blank" ? "board" : `board-${op.template}`)), taken);
+      const slots = { ...draft.slots, ...(op.title ? { title: op.title } : {}) };
+      const page: Page = { id, layout: "board", slots, tiles: placeTiles([], draft.tiles, boardRows(slots)) };
+      const pages = [...b.pages];
+      pages.splice(op.index ?? pages.length, 0, page);
+      return { ...b, pages };
+    }
+
+    case "addTiles": {
+      const { page, pages, idx } = boardPage(b, op.pageId);
+      pages[idx] = { ...page, tiles: placeTiles(page.tiles ?? [], op.tiles, boardRows(page.slots)) };
+      return { ...b, pages };
+    }
+
+    case "setTiles": {
+      const { page, pages, idx } = boardPage(b, op.pageId);
+      pages[idx] = { ...page, tiles: placeTiles([], op.tiles, boardRows(page.slots)) };
+      return { ...b, pages };
+    }
+
+    case "updateTile": {
+      const { page, pages, idx } = boardPage(b, op.pageId);
+      const tiles = [...(page.tiles ?? [])];
+      const ti = tiles.findIndex((t) => t.id === op.id);
+      ensure(ti >= 0, `No tile "${op.id}" on page "${op.pageId}". Tiles: ${tiles.map((t) => t.id).join(", ") || "none"}.`);
+      const prev = tiles[ti]!;
+      const slots = { ...prev.slots };
+      for (const [k, v] of Object.entries(op.slots)) {
+        if (v === null) delete slots[k];
+        else slots[k] = v;
+      }
+      const next: Tile = { ...prev, ...stripUndefined(op.patch), id: prev.id, slots };
+      checkPlacement(next, boardRows(page.slots));
+      tiles[ti] = next;
+      pages[idx] = { ...page, tiles };
+      return { ...b, pages };
+    }
+
+    case "removeTile": {
+      const { page, pages, idx } = boardPage(b, op.pageId);
+      ensure(
+        (page.tiles ?? []).some((t) => t.id === op.id),
+        `No tile "${op.id}" on page "${op.pageId}".`,
+      );
+      pages[idx] = { ...page, tiles: (page.tiles ?? []).filter((t) => t.id !== op.id) };
+      return { ...b, pages };
+    }
+
     case "scaffoldPages": {
       let next = b;
       for (const s of DEFAULT_SECTIONS) {
         next = applyOne(next, { type: "addPage", layout: s.layout, slots: s.slots });
       }
-      return next;
+      // The one-page overview board goes right after the cover.
+      return applyOne(next, { type: "addBoard", template: "overview", index: Math.min(1, next.pages.length) });
     }
 
     case "boardAdd": {
@@ -361,6 +504,45 @@ function applyOne(b: BrandT, op: Op): BrandT {
     case "boardArrange":
       return { ...b, board: { items: masonry(b.board.items, op.columns, op.width, op.gap) } };
   }
+}
+
+function boardPage(b: BrandT, pageId: string) {
+  const idx = b.pages.findIndex((p) => p.id === pageId);
+  ensure(idx >= 0, `No page with id "${pageId}".`);
+  const page = b.pages[idx]!;
+  ensure(page.layout === "board", `Page "${pageId}" is a ${page.layout} page; tiles live on board pages (add one with addBoard).`);
+  return { page, pages: [...b.pages], idx };
+}
+
+function checkPlacement(t: { id: string; x: number; y: number; w: number; h: number }, rows: number) {
+  ensure(t.x + t.w <= BOARD_COLUMNS, `Tile "${t.id}" spans columns ${t.x}–${t.x + t.w}; the board has ${BOARD_COLUMNS} (x + w ≤ ${BOARD_COLUMNS}).`);
+  ensure(
+    t.y + t.h <= rows,
+    `Tile "${t.id}" spans rows ${t.y}–${t.y + t.h}; the board has ${rows} rows (y + h ≤ ${rows}). Raise the board's rows slot or move the tile.`,
+  );
+}
+
+/** Give new tiles ids, default sizes and free spots, and validate placement. */
+function placeTiles(existing: Tile[], inputs: TileInput[], rows: number): Tile[] {
+  const taken = new Set(existing.map((t) => t.id));
+  const out = [...existing];
+  for (const raw of inputs) {
+    const spec = TILES[raw.kind];
+    const w = Math.min(BOARD_COLUMNS, raw.w ?? spec.size.w);
+    const h = Math.min(rows, raw.h ?? spec.size.h);
+    const id = raw.id && !taken.has(slugify(raw.id)) ? (taken.add(slugify(raw.id)), slugify(raw.id)) : uniqueId(raw.kind, taken);
+    let { x, y } = raw;
+    if (x === undefined || y === undefined) {
+      const spot = findSpot(out, w, h, rows);
+      ensure(!!spot, `No free ${w}×${h} space left for the ${raw.kind} tile — pass x/y, shrink it, or raise the board's rows.`);
+      x ??= spot.x;
+      y ??= spot.y;
+    }
+    const tile: Tile = { id, kind: raw.kind, x, y, w, h, tone: raw.tone ?? spec.tones[0] ?? "light", label: raw.label ?? "", slots: { ...raw.slots } };
+    checkPlacement(tile, rows);
+    out.push(tile);
+  }
+  return out;
 }
 
 function validateBoardRef(b: BrandT, kind: string, ref: string | undefined) {

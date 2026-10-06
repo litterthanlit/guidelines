@@ -1,5 +1,7 @@
 import { contrastRatio, primaryTextPair, readableOn } from "./color";
+import { parseArt } from "./art";
 import { LAYOUTS } from "./layouts";
+import { boardRows, TILES, tileOverlaps } from "./tiles";
 import type { Brand } from "./schema";
 
 export type Severity = "error" | "warning" | "suggestion";
@@ -72,6 +74,31 @@ export function auditBrand(b: Brand): AuditIssue[] {
       }
     }
     if (p.layout === "iconography-grid" && !b.icons.length) push("warning", "pages", "Iconography page but no icons defined.", p.id);
+    if (p.layout === "board") {
+      const tiles = p.tiles ?? [];
+      const rows = boardRows(p.slots);
+      if (!tiles.length) push("warning", "board", "Board has no tiles — add some with add_tile or start from a template.", p.id);
+      for (const t of tiles) {
+        const spec = TILES[t.kind];
+        if (t.y + t.h > rows) push("error", "board", `Tile "${t.id}" runs past row ${rows}; raise the board's rows or move it.`, p.id);
+        for (const slot of spec.slots) {
+          const v = t.slots[slot.key]?.trim() ?? "";
+          if (slot.required && !v) push("warning", "board", `${spec.name} tile "${t.id}" is missing ${slot.label.toLowerCase()}.`, p.id);
+          if (slot.kind === "asset" && v && !assetIds.has(v)) push("error", "board", `Tile "${t.id}" references missing asset "${v}".`, p.id);
+          if ((slot.kind === "art" || slot.kind === "arts") && v) {
+            for (const a of v
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean))
+              if (!parseArt(a)) push("warning", "board", `Tile "${t.id}" has an unknown artwork "${a}" (use style:seed, e.g. burst:3).`, p.id);
+          }
+          if (slot.kind === "option" && v && slot.options && !slot.options.includes(v))
+            push("warning", "board", `Tile "${t.id}" ${slot.key} should be one of ${slot.options.join(", ")}.`, p.id);
+        }
+        if (!spec.tones.includes(t.tone)) push("suggestion", "board", `${spec.name} tiles aren't designed for the ${t.tone} tone.`, p.id);
+      }
+      for (const [a, c] of tileOverlaps(tiles)) push("warning", "board", `Tiles "${a}" and "${c}" overlap.`, p.id);
+    }
     const body = p.slots.body ?? "";
     if (body.split(/\s+/).length > 90)
       push("suggestion", "copy", `“${spec.name}” body copy is long (${body.split(/\s+/).length} words) — guideline pages read best under ~70.`, p.id);

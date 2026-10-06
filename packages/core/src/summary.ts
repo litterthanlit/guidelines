@@ -17,13 +17,14 @@ export function summarizeBrand(b: Brand) {
     meta: b.meta,
     logo: {
       wordmark: b.logo.wordmark,
+      wordmarkFont: b.logo.font?.family ?? null,
       hasMark: !!b.logo.markSvg,
       markBytes: b.logo.markSvg?.length ?? 0,
       clearSpace: b.logo.clearSpace,
       minSize: b.logo.minSize,
       notes: b.logo.notes,
     },
-    colors: b.colors.map((c) => ({ id: c.id, name: c.name, hex: c.hex, role: c.role, usage: c.usage })),
+    colors: b.colors.map((c) => ({ id: c.id, name: c.name, hex: c.hex, role: c.role, usage: c.usage, ...(c.traits.length ? { traits: c.traits } : {}) })),
     bodyTextContrast: pair ? `${pair.ratio}:1 (${pair.level}), APCA Lc ${pair.apca}` : "n/a — define text and background roles",
     typography: {
       display: `${b.typography.display.family} ${b.typography.display.weights.join("/")}`,
@@ -42,6 +43,18 @@ export function summarizeBrand(b: Brand) {
       layout: p.layout,
       name: LAYOUTS[p.layout].name,
       slots: Object.fromEntries(Object.entries(p.slots).map(([k, v]) => [k, clip(v)])),
+      ...(p.tiles
+        ? {
+            tiles: p.tiles.map((t) => ({
+              id: t.id,
+              kind: t.kind,
+              at: `x${t.x} y${t.y} ${t.w}×${t.h}`,
+              tone: t.tone,
+              ...(t.label ? { label: t.label } : {}),
+              slots: Object.fromEntries(Object.entries(t.slots).map(([k, v]) => [k, clip(v, 90)])),
+            })),
+          }
+        : {}),
     })),
     board: { items: b.board.items.length },
   };

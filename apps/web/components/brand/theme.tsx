@@ -1,4 +1,4 @@
-import { atmosphericGradient, googleFontsHref, readableOn, svgDataUri, type Brand, type Color, type Font } from "@guidelines/core";
+import { atmosphericGradient, googleFontsHref, readableOn, svgAspect, svgDataUri, type Brand, type Color, type Font } from "@guidelines/core";
 import type { CSSProperties, ReactNode } from "react";
 
 export const assetUrl = (slug: string, file: string) =>
@@ -29,6 +29,9 @@ export function brandTheme(b: Brand) {
   // A panel tone one step away from the page background.
   const panel = neutral?.scale["100"] ?? bgC?.scale["100"] ?? "#E7E6E2";
   const tint = primaryC?.scale["100"] ?? panel;
+  const secondary = pick(b, "secondary")?.hex ?? primaryC?.scale["300"] ?? accent;
+  // Headline weight and tracking come from the largest display style in the type scale.
+  const displayStyle = [...b.typography.scale].filter((s) => s.font === "display").sort((x, y) => y.size - x.size)[0];
   const gradientColors = b.colors
     .filter((c) => c.role !== "text")
     .map((c) => c.hex)
@@ -44,6 +47,13 @@ export function brandTheme(b: Brand) {
     "--b-display": stack(b.typography.display),
     "--b-text": stack(b.typography.text),
     "--b-mono": b.typography.mono ? stack(b.typography.mono) : "ui-monospace, monospace",
+    "--b-secondary": secondary,
+    "--b-display-weight": displayStyle?.weight ?? 400,
+    "--b-display-tracking": `${displayStyle?.tracking ?? -0.02}em`,
+    "--b-logo": b.logo.font ? stack(b.logo.font) : stack(b.typography.text),
+    "--b-logo-weight": b.logo.wordmarkWeight ?? (b.logo.font ? (b.logo.font.weights[0] ?? 500) : 500),
+    "--b-logo-tracking": `${b.logo.wordmarkTracking ?? -0.01}em`,
+    "--mark-aspect": svgAspect(b.logo.markSvg),
     "--b-gradient": atmosphericGradient(gradientColors, b.slug.length),
     "--mark": b.logo.markSvg ? `url("${svgDataUri(b.logo.markSvg)}")` : "none",
   } as CSSProperties;
@@ -52,7 +62,7 @@ export function brandTheme(b: Brand) {
 
 /** Injects brand fonts. React 19 hoists these <link>/<style> tags into <head>. */
 export function BrandFonts({ brand }: { brand: Brand }) {
-  const fonts = [brand.typography.display, brand.typography.text, brand.typography.mono].filter(Boolean) as Font[];
+  const fonts = [brand.typography.display, brand.typography.text, brand.typography.mono, brand.logo.font].filter(Boolean) as Font[];
   const google = fonts.filter((f) => f.source === "google");
   const files = fonts.filter((f) => f.source === "file" && f.file);
   // One stylesheet per family, so an unavailable weight in one family can't break the others.

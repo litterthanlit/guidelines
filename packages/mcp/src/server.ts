@@ -2,7 +2,11 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mc
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import {
   applyOps,
+  ART_STYLE_IDS,
+  ART_STYLES,
+  artColors,
   auditBrand,
+  BOARD_TEMPLATES,
   ColorRole,
   contrastReport,
   exportTokens,
@@ -13,11 +17,16 @@ import {
   LayoutId,
   makeId,
   Op,
+  pageAspect,
   primaryTextPair,
   proposePalettes,
   slugify,
   suggestPairings,
   summarizeBrand,
+  TILE_KINDS,
+  TILES,
+  TileKind,
+  TileTone,
   TOKEN_FORMATS,
   TypeStyle,
   type Brand,
@@ -41,7 +50,8 @@ Workflow that produces the best results:
 5. Logo: author a simple, geometric logomark as clean SVG (viewBox, no text, fill="currentColor") via set_logo.
 6. Imagery: set an art direction in update_meta/set_imagery_style, then generate_image and place results with placeOn.
 7. Fill page copy with update_page — short, confident, 2–4 sentences per page.
-8. render_preview to look at pages, audit_brand to catch issues, iterate.
+8. Brand boards — the one-page identity overview: add_board from a template (overview = light editorial, system = dark identity system, index = labeled gallery sheet), then update_tile to write each tile's copy and choose artwork. Artwork is procedural and on-palette: set a tile's "art" slot to "style:seed" (list_tiles shows styles). Give colors traits (3 words each) for palette tiles. For bold modern identities set the Display style weight to 700 and tracking around -0.04.
+9. render_preview to look at pages and boards, audit_brand to catch issues, iterate.
 
 Always pass expectedRev from your last read when editing; on a conflict, re-read with get_brand (the designer may have edited) and merge rather than overwrite.`;
 
@@ -246,6 +256,7 @@ export function createServer(): McpServer {
     hex: z.string().describe("#RRGGBB"),
     role: ColorRole,
     usage: z.string().optional().describe("When to use it, e.g. 'Primary surfaces and hero backgrounds'"),
+    traits: z.array(z.string()).optional().describe('2–3 words the color stands for, shown on board palettes, e.g. ["Depth", "Focus", "Clarity"]'),
     id: z.string().optional(),
   });
 
@@ -286,7 +297,7 @@ export function createServer(): McpServer {
     "update_color",
     {
       title: "Update color",
-      description: "Edit one color by id (name, hex, role, usage). The tonal scale regenerates when hex changes.",
+      description: "Edit one color by id (name, hex, role, usage, traits). The tonal scale regenerates when hex changes.",
       inputSchema: {
         slug: slugArg,
         id: z.string(),
@@ -294,6 +305,7 @@ export function createServer(): McpServer {
         hex: z.string().optional(),
         role: ColorRole.optional(),
         usage: z.string().optional(),
+        traits: z.array(z.string()).optional(),
         expectedRev: revArg,
       },
     },
@@ -350,10 +362,18 @@ export function createServer(): McpServer {
         clearSpace: z.number().optional().describe("Clear space as a multiple of mark height"),
         minSize: z.number().optional().describe("Minimum height in px"),
         notes: z.string().optional().describe("Concept and usage notes"),
+        wordmarkFont: FontArg.nullable()
+          .optional()
+          .describe("A distinct typeface for the wordmark (e.g. a wide or geometric face). null resets to the text font."),
+        wordmarkWeight: z.number().int().min(100).max(900).optional(),
+        wordmarkTracking: z.number().optional().describe("Letter spacing in em, e.g. -0.02"),
         expectedRev: revArg,
       },
     },
-    safe(async ({ slug, expectedRev, ...patch }) => changed(await edit(slug, [{ type: "setLogo", patch }], expectedRev), "Logo updated")),
+    safe(async ({ slug, expectedRev, wordmarkFont, ...patch }) => {
+      const font = wordmarkFont === null ? null : wordmarkFont ? toFont(wordmarkFont) : undefined;
+      return changed(await edit(slug, [{ type: "setLogo", patch: { ...patch, font } }], expectedRev), "Logo updated");
+    }),
   );
 
   server.registerTool(
@@ -448,13 +468,130 @@ export function createServer(): McpServer {
     {
       title: "Apply ops (batch)",
       description:
-        "Apply several low-level ops atomically in one revision. Op types: updateMeta, setColors, updateColor, removeColor, setTypography, setLogo, setImageryStyle, addAsset, updateAsset, removeAsset, setIcons, addPage, updatePage, removePage, reorderPages, scaffoldPages, boardAdd, boardUpdate, boardRemove, boardArrange.",
+        "Apply several low-level ops atomically in one revision. Op types: updateMeta, setColors, updateColor, removeColor, setTypography, setLogo, setImageryStyle, addAsset, updateAsset, removeAsset, setIcons, addPage, updatePage, removePage, reorderPages, scaffoldPages, addBoard, addTiles, updateTile, removeTile, setTiles, boardAdd, boardUpdate, boardRemove, boardArrange. (boardAdd/boardUpdate/… are the moodboard canvas; addBoard/…Tile are brand-board pages.)",
       inputSchema: { slug: slugArg, ops: z.array(z.record(z.string(), z.unknown())).min(1), expectedRev: revArg },
     },
     safe(async ({ slug, ops, expectedRev }) => {
       const parsed = ops.map((o) => Op.parse(o));
       return changed(await edit(slug, parsed, expectedRev), `${parsed.length} ops applied`);
     }),
+  );
+
+  // ─────────────────────────── Brand boards ───────────────────────────
+
+  const TilePlacement = {
+    x: z.number().int().min(0).optional().describe("Column, 0–11"),
+    y: z.number().int().min(0).optional().describe("Row, 0-based"),
+    w: z.number().int().min(1).optional().describe("Width in columns"),
+    h: z.number().int().min(1).optional().describe("Height in rows"),
+    tone: TileTone.optional().describe("light | dark (inverted) | panel | brand (primary) | clear"),
+    label: z.string().optional().describe("Caption above the tile on gallery boards"),
+  };
+  const tileSummary = (b: Brand, pageId: string) => summarizeBrand(b).pages.find((p) => p.id === pageId)?.tiles ?? [];
+
+  server.registerTool(
+    "list_tiles",
+    {
+      title: "List board tiles, artwork and templates",
+      description:
+        'Everything for composing brand boards: tile kinds with their slots, procedural artwork styles (use as "style:seed" in art slots), and board templates.',
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    safe(async () =>
+      ok({
+        grid: "Boards are 12 columns × `rows` (page slot, default 12). Tiles take x, y, w, h in grid units.",
+        tiles: TILE_KINDS.map((k) => ({
+          ...TILES[k],
+          slots: TILES[k].slots.map(({ key, kind, label, hint, options }) => ({ key, kind, label, hint, options })),
+        })),
+        artStyles: ART_STYLE_IDS.map((id) => ({ id, ...ART_STYLES[id] })),
+        templates: [
+          ...Object.values(BOARD_TEMPLATES).map(({ id, name, description }) => ({ id, name, description })),
+          { id: "blank", name: "Blank", description: "Empty grid." },
+        ],
+      }),
+    ),
+  );
+
+  server.registerTool(
+    "add_board",
+    {
+      title: "Add brand board",
+      description:
+        "Add a brand board page — a bento composition of tiles summarizing the identity on one page. Templates: overview (light, hairline rules), system (dark identity system), index (labeled gallery sheet), blank. Copy is drafted from the brand meta; rewrite it with update_tile.",
+      inputSchema: {
+        slug: slugArg,
+        template: z
+          .enum([...(Object.keys(BOARD_TEMPLATES) as [string, ...string[]]), "blank"])
+          .optional()
+          .describe("Default overview"),
+        title: z.string().optional(),
+        id: z.string().optional().describe('Readable page id, e.g. "board-system"'),
+        index: z.number().int().min(0).optional().describe("0-based insert position; default end"),
+        expectedRev: revArg,
+      },
+    },
+    safe(async ({ slug, template, title, id, index, expectedRev }) => {
+      const before = new Set((await readBrand(slug)).pages.map((p) => p.id));
+      const b = await edit(slug, [{ type: "addBoard", template: template ?? "overview", title, id, index }], expectedRev);
+      const page = b.pages.find((p) => !before.has(p.id))!;
+      return changed(b, "Board added", { pageId: page.id, slots: page.slots, tiles: tileSummary(b, page.id) });
+    }),
+  );
+
+  server.registerTool(
+    "add_tile",
+    {
+      title: "Add tile",
+      description: "Add a tile to a board page. Omit x/y to drop it in the first free space. See list_tiles for kinds and slots.",
+      inputSchema: {
+        slug: slugArg,
+        pageId: z.string(),
+        kind: TileKind,
+        id: z.string().optional(),
+        ...TilePlacement,
+        slots: z.record(z.string(), z.string()).optional(),
+        expectedRev: revArg,
+      },
+    },
+    safe(async ({ slug, pageId, expectedRev, ...tile }) => {
+      const b = await edit(slug, [{ type: "addTiles", pageId, tiles: [tile] }], expectedRev);
+      return changed(b, "Tile added", { tiles: tileSummary(b, pageId) });
+    }),
+  );
+
+  server.registerTool(
+    "update_tile",
+    {
+      title: "Update tile",
+      description:
+        'Edit a board tile: merge slot values (null clears one), move/resize it, change its kind or surface tone. Artwork slots take "style:seed", e.g. {"art": "flow:4"}.',
+      inputSchema: {
+        slug: slugArg,
+        pageId: z.string(),
+        tileId: z.string(),
+        slots: z.record(z.string(), z.string().nullable()).optional(),
+        kind: TileKind.optional(),
+        ...TilePlacement,
+        expectedRev: revArg,
+      },
+    },
+    safe(async ({ slug, pageId, tileId, slots, expectedRev, ...patch }) => {
+      const b = await edit(slug, [{ type: "updateTile", pageId, id: tileId, slots: slots ?? {}, patch }], expectedRev);
+      return changed(b, "Tile updated", { tile: tileSummary(b, pageId).find((t) => t.id === tileId) });
+    }),
+  );
+
+  server.registerTool(
+    "remove_tile",
+    {
+      title: "Remove tile",
+      description: "Delete a tile from a board page.",
+      inputSchema: { slug: slugArg, pageId: z.string(), tileId: z.string(), expectedRev: revArg },
+      annotations: { destructiveHint: true },
+    },
+    safe(async ({ slug, pageId, tileId, expectedRev }) => changed(await edit(slug, [{ type: "removeTile", pageId, id: tileId }], expectedRev), "Tile removed")),
   );
 
   server.registerTool(
@@ -508,7 +645,7 @@ export function createServer(): McpServer {
     {
       title: "Generate image",
       description:
-        "Generate brand imagery and save it as an asset. The brand's imagery direction and palette are added to the prompt. Provider auto-detects: FAL_KEY → Flux, OPENAI_API_KEY → gpt-image, otherwise an offline on-palette gradient artwork (prompts with 'streak'/'motion'/'horizon' give motion-blur bands). Optionally place it on a page and/or the moodboard.",
+        "Generate brand imagery and save it as an asset. The brand's imagery direction and palette are added to the prompt. Provider auto-detects: FAL_KEY → Flux, OPENAI_API_KEY → gpt-image, otherwise offline procedural artwork in the brand palette (pass art, or let the prompt pick: burst, swirl, flow, strata, orb, grid, streaks…). Optionally place it on a page and/or the moodboard. For board tiles prefer setting the tile's art slot directly — it stays live with palette edits.",
       inputSchema: {
         slug: slugArg,
         prompt: z.string().describe("Describe subject, composition, light, medium. No text in images."),
@@ -519,12 +656,27 @@ export function createServer(): McpServer {
         addToBoard: z.boolean().optional(),
         provider: z.enum(["fal", "openai", "gradient"]).optional(),
         usePalette: z.boolean().optional().describe("Include brand colors in the prompt (default true)"),
+        art: z
+          .string()
+          .optional()
+          .describe('Offline provider only: a procedural artwork "style:seed" (see list_tiles), e.g. "burst:3". Default: chosen from the prompt.'),
+        tone: z.enum(["light", "dark"]).optional().describe("Offline provider only: draw on the background color (light) or the text color (dark)."),
       },
     },
-    safe(async ({ slug, prompt, aspect, alt, caption, placeOn, addToBoard, provider, usePalette }) => {
+    safe(async ({ slug, prompt, aspect, alt, caption, placeOn, addToBoard, provider, usePalette, art, tone }) => {
       const b = await readBrand(slug);
       const palette = usePalette === false ? [] : b.colors.map((c) => c.hex);
-      const img = await generateImage({ prompt, aspect: (aspect ?? "16:9") as Aspect, palette, style: b.imagery.style }, provider);
+      const img = await generateImage(
+        {
+          prompt,
+          aspect: (aspect ?? "16:9") as Aspect,
+          palette,
+          style: b.imagery.style,
+          art,
+          colors: usePalette === false || !b.colors.length ? undefined : artColors(b, tone ?? "light"),
+        },
+        provider,
+      );
       const id = makeId("img");
       const file = await saveAssetFile(slug, `${slugify(prompt).slice(0, 32)}${img.ext}`, img.bytes);
       const next = await addAssetAndPlace(
@@ -538,7 +690,7 @@ export function createServer(): McpServer {
         file,
         provider: img.provider,
         ...(img.provider === "gradient" && resolveProvider() === "gradient"
-          ? { tip: "No FAL_KEY/OPENAI_API_KEY set — produced an abstract gradient. Set a key for photographic or illustrative imagery." }
+          ? { tip: "No FAL_KEY/OPENAI_API_KEY set — produced procedural artwork. Set a key for photographic or illustrative imagery." }
           : {}),
       });
     }),
@@ -643,7 +795,7 @@ export function createServer(): McpServer {
     "render_preview",
     {
       title: "Render page preview",
-      description: "Screenshot a guideline page from the running studio so you can see it. Identify the page by id or 1-based number.",
+      description: "Screenshot a guideline page or brand board from the running studio so you can see it. Identify the page by id or 1-based number.",
       inputSchema: {
         slug: slugArg,
         pageId: z.string().optional(),
@@ -656,7 +808,8 @@ export function createServer(): McpServer {
       const b = await readBrand(slug);
       const target = pageId ? b.pages.find((p) => p.id === pageId) : b.pages[(page ?? 1) - 1];
       if (!target) throw new Error(`Page not found. Pages: ${b.pages.map((p, i) => `${i + 1}:${p.id}`).join(", ")}`);
-      const png = await renderPage(slug, target.id, width ?? 1440);
+      const [aw, ah] = pageAspect(target);
+      const png = await renderPage(slug, target.id, width ?? 1440, ah / aw);
       return ok(`Page ${b.pages.indexOf(target) + 1} · ${LAYOUTS[target.layout].name} (${target.id}) · rev ${b.rev}`, [
         { type: "image", data: png.toString("base64"), mimeType: "image/png" },
       ]);
@@ -706,7 +859,8 @@ Then build a complete first draft without stopping for approval at each step:
 4. Draw a simple geometric logomark SVG (viewBox, fill="currentColor") and set_logo with concept notes.
 5. set_imagery_style, then generate_image for the cover (placeOn cover.image), 3–6 imagery-grid images (placeOn the imagery page), and a billboard image; add a few to the moodboard.
 6. Write every page's copy with update_page — confident, specific, 2–4 sentences.
-7. render_preview the cover and palette pages, audit_brand, fix what you find.
+7. Brand boards: create_brand already adds an overview board; add a system board (and an index board if it suits), then update_tile each tile — headlines of 2–5 words, mono captions, steps that tell the product story, and artwork styles that fit the brand (list_tiles). Give every color 2–3 traits.
+8. render_preview the cover, the boards and the palette page, audit_brand, fix what you find.
 
 Finish with a short summary and the studio link.`,
           },
@@ -728,7 +882,7 @@ Finish with a short summary and the studio link.`,
           role: "user",
           content: {
             type: "text",
-            text: `Review the "${slug}" brand guidelines as a senior art director. Run audit_brand, then render_preview every page. Assess hierarchy, whitespace, consistency of voice, palette restraint, type pairing and imagery coherence. List the 5 most impactful improvements, then apply them (pass expectedRev on each write) and re-render to confirm.`,
+            text: `Review the "${slug}" brand guidelines as a senior art director. Run audit_brand, then render_preview every page and board. Assess hierarchy, whitespace, consistency of voice, palette restraint, type pairing, imagery coherence and how well each board's tiles balance. List the 5 most impactful improvements, then apply them (pass expectedRev on each write) and re-render to confirm.`,
           },
         },
       ],

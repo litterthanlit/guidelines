@@ -1,9 +1,11 @@
+import { artStyleFromPrompt, parseArt, renderArt, type ArtColors } from "@guidelines/core";
+
 /**
  * Image generation adapter. Providers, in auto-detect order:
  *   fal      — FAL_KEY        (Flux; default model fal-ai/flux/dev)
  *   openai   — OPENAI_API_KEY (gpt-image-1 by default)
- *   gradient — no key needed: on-brand blurred gradient / motion-streak SVGs,
- *              great for atmospheric covers and statement pages.
+ *   gradient — no key needed: on-palette procedural artwork (bursts, swirls,
+ *              line flows, emblems, orbs, grids, haze, bands) as SVG.
  * Force one with GUIDELINES_IMAGE_PROVIDER=fal|openai|gradient.
  */
 
@@ -17,6 +19,10 @@ export interface GenerateRequest {
   palette: string[];
   /** Global imagery direction from the brand, prepended to the prompt. */
   style?: string;
+  /** Role-mapped brand colors for procedural artwork. Derived from `palette` when absent. */
+  colors?: ArtColors;
+  /** Procedural artwork spec ("burst:3") for the offline provider. Picked from the prompt when absent. */
+  art?: string;
 }
 
 export interface GeneratedImage {
@@ -131,64 +137,26 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-function rng(seed: number) {
-  let x = seed || 1;
-  return () => {
-    x ^= x << 13;
-    x ^= x >>> 17;
-    x ^= x << 5;
-    return ((x >>> 0) % 10000) / 10000;
-  };
+/** Best-effort role mapping for a bare palette list: first = primary, last = background. */
+export function paletteColors(palette: string[]): ArtColors {
+  const pal = palette.length ? palette : ["#7D93C9", "#C9D6EA", "#F3EFE6"];
+  const bg = pal[pal.length - 1]!;
+  const primary = pal[0]!;
+  const secondary = pal[1] ?? primary;
+  const light = pal[2] ?? secondary;
+  const accent = pal.length > 3 ? pal[pal.length - 2]! : secondary;
+  return { bg, ink: "#151515", primary, secondary, accent, light };
 }
 
 /**
- * Offline, deterministic, on-palette atmospheric artwork. Prompts mentioning
- * "streak", "motion", "band" or "horizon" produce horizontal motion-blur bands;
- * everything else produces soft blurred orbs with film grain.
+ * Offline, deterministic, on-palette artwork. Uses `req.art` when given,
+ * otherwise picks a style from the prompt ("burst", "swirl", "flow", "orb",
+ * "grid", "streak"…) and seeds it from the prompt text.
  */
 export function gradientSvg(req: GenerateRequest): string {
-  const [w, h] = DIMENSIONS[req.aspect];
-  const rand = rng(hash(req.prompt + req.aspect));
-  const pal = req.palette.length ? req.palette : ["#C9D6EA", "#7D93C9", "#F3EFE6", "#2B2B2B"];
-  const bg = pal[pal.length - 1]!;
-  const streaks = /streak|motion|band|horizon|speed|line/i.test(req.prompt);
-  const shapes: string[] = [];
-
-  if (streaks) {
-    const rows = 7 + Math.floor(rand() * 5);
-    for (let i = 0; i < rows; i++) {
-      const y = (h / rows) * i - h * 0.05;
-      const color = pal[Math.floor(rand() * pal.length)]!;
-      const opacity = (0.45 + rand() * 0.5).toFixed(2);
-      shapes.push(
-        `<rect x="${-w * 0.1}" y="${y.toFixed(0)}" width="${w * 1.2}" height="${(h / rows) * (0.8 + rand() * 0.9)}" fill="${color}" opacity="${opacity}"/>`,
-      );
-    }
-    return svgDoc(w, h, bg, shapes, `<feGaussianBlur stdDeviation="${w * 0.06} ${h * 0.012}"/>`);
-  }
-
-  const count = 4 + Math.floor(rand() * 3);
-  for (let i = 0; i < count; i++) {
-    const color = pal[i % pal.length]!;
-    const cx = (rand() * w).toFixed(0);
-    const cy = (rand() * h).toFixed(0);
-    const r = ((0.25 + rand() * 0.35) * Math.max(w, h)).toFixed(0);
-    shapes.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${(0.55 + rand() * 0.45).toFixed(2)}"/>`);
-  }
-  return svgDoc(w, h, bg, shapes, `<feGaussianBlur stdDeviation="${(Math.max(w, h) * 0.09).toFixed(0)}"/>`);
-}
-
-function svgDoc(w: number, h: number, bg: string, shapes: string[], blur: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice">
-  <defs>
-    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">${blur}</filter>
-    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.09"/></feComponentTransfer></filter>
-  </defs>
-  <rect width="100%" height="100%" fill="${bg}"/>
-  <g filter="url(#soft)">${shapes.join("")}</g>
-  <rect width="100%" height="100%" filter="url(#grain)"/>
-</svg>
-`;
+  const [width, height] = DIMENSIONS[req.aspect];
+  const spec = parseArt(req.art) ?? { style: artStyleFromPrompt(req.prompt), seed: (hash(req.prompt + req.aspect) % 997) + 1 };
+  return renderArt(spec, req.colors ?? paletteColors(req.palette), { width, height });
 }
 
 function generateGradient(req: GenerateRequest): GeneratedImage {
@@ -199,6 +167,6 @@ function generateGradient(req: GenerateRequest): GeneratedImage {
     width: w,
     height: h,
     provider: "gradient",
-    model: "guidelines-gradient-v1",
+    model: "guidelines-art-v1",
   };
 }

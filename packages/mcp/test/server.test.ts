@@ -52,6 +52,11 @@ describe("guidelines MCP server", () => {
       "export_tokens",
       "audit_brand",
       "board_add",
+      "list_tiles",
+      "add_board",
+      "add_tile",
+      "update_tile",
+      "remove_tile",
     ]) {
       expect(names).toContain(n);
     }
@@ -137,5 +142,61 @@ describe("guidelines MCP server", () => {
 
     const res = await client.readResource({ uri: `brand://${slug}` });
     expect(JSON.parse((res.contents[0] as { text: string }).text).slug).toBe(slug);
+  });
+
+  it("composes brand boards", async () => {
+    const slug = "board-co";
+    await call("create_brand", { name: "Board Co", tagline: "Project memory for coding agents.", scaffold: false });
+    await call("set_palette", {
+      slug,
+      colors: [
+        { name: "Ivory", hex: "#F3F1EA", role: "background", traits: ["Balance", "Space"] },
+        { name: "Charcoal", hex: "#171A1B", role: "text" },
+        { name: "Blue", hex: "#1689D4", role: "primary" },
+      ],
+    });
+
+    const catalog = await call("list_tiles");
+    expect(catalog.json.tiles.map((t: any) => t.kind)).toContain("hero");
+    expect(catalog.json.artStyles.map((a: any) => a.id)).toEqual(expect.arrayContaining(["burst", "flow", "orb"]));
+    expect(catalog.json.templates.map((t: any) => t.id)).toEqual(expect.arrayContaining(["overview", "system", "index", "blank"]));
+
+    const board = await call("add_board", { slug, template: "system", id: "system" });
+    expect(board.res.isError).toBeFalsy();
+    expect(board.json.pageId).toBe("system");
+    expect(board.json.tiles.some((t: any) => t.kind === "palette")).toBe(true);
+
+    const hero = board.json.tiles.find((t: any) => t.kind === "hero");
+    const upd = await call("update_tile", {
+      slug,
+      pageId: "system",
+      tileId: hero.id,
+      slots: { headline: "Every session.\nSame context.", art: "burst:4" },
+      tone: "light",
+    });
+    expect(upd.res.isError).toBeFalsy();
+    expect(upd.json.tile.tone).toBe("light");
+    expect(upd.json.tile.slots.art).toBe("burst:4");
+
+    const outside = await call("update_tile", { slug, pageId: "system", tileId: hero.id, x: 10 });
+    expect(outside.res.isError).toBe(true);
+    expect(outside.text).toMatch(/columns/);
+
+    const blank = await call("add_board", { slug, template: "blank", id: "blank" });
+    const added = await call("add_tile", { slug, pageId: blank.json.pageId, kind: "art", slots: { art: "orb:2" } });
+    expect(added.json.tiles).toHaveLength(1);
+    const removed = await call("remove_tile", { slug, pageId: blank.json.pageId, tileId: added.json.tiles[0].id });
+    expect(removed.res.isError).toBeFalsy();
+
+    const art = await call("generate_image", { slug, prompt: "brand artwork", art: "flow:3", tone: "dark", alt: "Line flow" });
+    expect(art.res.isError).toBeFalsy();
+    const svg = await readFile(path.join(dir, slug, art.json.file), "utf8");
+    expect(svg).toContain("#171A1B");
+
+    const logo = await call("set_logo", { slug, wordmark: "board", wordmarkFont: { family: "Michroma" }, wordmarkTracking: 0.02 });
+    expect(logo.res.isError).toBeFalsy();
+    const full = await call("get_brand", { slug, full: true });
+    expect(full.json.logo).toMatchObject({ wordmark: "board", wordmarkTracking: 0.02, font: { family: "Michroma" } });
+    expect(full.json.colors[0].traits).toEqual(["Balance", "Space"]);
   });
 });

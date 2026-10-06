@@ -3,8 +3,8 @@ import { mutateBrand, readBrand, saveAssetFile } from "@guidelines/core/store";
 import { handle } from "@/lib/http";
 
 /**
- * Upload an image (multipart: file, alt?, width?, height?, pageId?, slot?, board?).
- * Optionally places it into a page slot and/or onto the moodboard in the same revision.
+ * Upload an image (multipart: file, alt?, width?, height?, pageId?, slot?, tileId?, board?).
+ * Optionally places it into a page or board-tile slot and/or onto the moodboard in the same revision.
  */
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string }> }) {
   return handle(async () => {
@@ -26,7 +26,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
 
     const pageId = form.get("pageId");
     const slot = form.get("slot");
-    if (typeof pageId === "string" && typeof slot === "string" && pageId && slot) {
+    const tileId = form.get("tileId");
+    if (typeof pageId === "string" && typeof slot === "string" && typeof tileId === "string" && pageId && slot && tileId) {
+      ops.push({ type: "updateTile", pageId, id: tileId, slots: { [slot]: id } });
+    } else if (typeof pageId === "string" && typeof slot === "string" && pageId && slot) {
       const brand = await readBrand(slug);
       const page = brand.pages.find((p) => p.id === pageId);
       const prev = page?.slots[slot]?.trim();

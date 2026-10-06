@@ -34,6 +34,8 @@ export const Color = z.object({
   hex: Hex,
   role: ColorRole,
   usage: z.string().default(""),
+  /** Two or three words the color stands for, e.g. ["Depth", "Focus", "Clarity"]. Shown on boards. */
+  traits: z.array(z.string()).default([]),
   /** Generated OKLCH tonal scale, keyed by step. */
   scale: z.record(z.string(), Hex).default({}),
 });
@@ -82,6 +84,11 @@ export const Logo = z.object({
   /** Minimum rendered height in px. */
   minSize: z.number().min(0).default(24),
   notes: z.string().default(""),
+  /** Typeface for the wordmark when it differs from the text font (logos often do). */
+  font: Font.optional(),
+  wordmarkWeight: z.number().int().min(100).max(900).optional(),
+  /** Letter spacing in em, e.g. -0.02 tight or 0.04 open. */
+  wordmarkTracking: z.number().min(-0.2).max(0.5).optional(),
 });
 export type Logo = z.infer<typeof Logo>;
 
@@ -115,14 +122,55 @@ export const LayoutId = z.enum([
   "application-mockup",
   "iconography-grid",
   "do-dont",
+  "board",
 ]);
 export type LayoutId = z.infer<typeof LayoutId>;
+
+/** Brand boards are laid out on a 12-column grid. */
+export const BOARD_COLUMNS = 12;
+export const BOARD_MAX_ROWS = 24;
+
+export const TileKind = z.enum(["logo", "hero", "art", "palette", "type", "steps", "poster", "web", "text"]);
+export type TileKind = z.infer<typeof TileKind>;
+
+/**
+ * Surface a tile sits on. light = brand background, dark = inverted (text color
+ * as background), panel = a quiet tint, brand = primary color, clear = none.
+ */
+export const TileTone = z.enum(["light", "dark", "panel", "brand", "clear"]);
+export type TileTone = z.infer<typeof TileTone>;
+
+/** One cell of a brand board: a small composition with its own slots. */
+export const Tile = z.object({
+  id: z.string().min(1),
+  kind: TileKind,
+  /** Grid placement in columns/rows, 0-based. */
+  x: z
+    .number()
+    .int()
+    .min(0)
+    .max(BOARD_COLUMNS - 1),
+  y: z
+    .number()
+    .int()
+    .min(0)
+    .max(BOARD_MAX_ROWS - 1),
+  w: z.number().int().min(1).max(BOARD_COLUMNS),
+  h: z.number().int().min(1).max(BOARD_MAX_ROWS),
+  tone: TileTone.default("light"),
+  /** Small caption shown above the tile on "gallery" boards, e.g. "Logo orb". */
+  label: z.string().default(""),
+  slots: z.record(z.string(), z.string()).default({}),
+});
+export type Tile = z.infer<typeof Tile>;
 
 export const Page = z.object({
   id: z.string().min(1),
   layout: LayoutId,
   /** Slot values. Text, asset ids (comma separated for lists), or options. */
   slots: z.record(z.string(), z.string()).default({}),
+  /** Only for the "board" layout. */
+  tiles: z.array(Tile).optional(),
 });
 export type Page = z.infer<typeof Page>;
 

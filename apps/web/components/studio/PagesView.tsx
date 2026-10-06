@@ -1,6 +1,6 @@
 "use client";
 
-import { LAYOUT_IDS, LAYOUTS, type LayoutId } from "@guidelines/core";
+import { BOARD_TEMPLATES, LAYOUT_IDS, LAYOUTS, type LayoutId } from "@guidelines/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Slide } from "../brand/Slide";
 import type { EditApi } from "../brand/slots";
@@ -14,6 +14,7 @@ export function PagesView() {
   const { brand, apply, upload, flashed } = useStore();
   const [selected, setSelected] = useState<string | undefined>(brand.pages[0]?.id);
   const [presenting, setPresenting] = useState<number | null>(null);
+  const [tileSel, setTileSel] = useState<{ pageId: string; tileId: string } | null>(null);
   const [drawer, setDrawer] = useState<"pages" | "inspect" | null>(null);
   const refs = useRef(new Map<string, HTMLElement>());
 
@@ -22,12 +23,25 @@ export function PagesView() {
     if (!selected || !brand.pages.some((p) => p.id === selected)) setSelected(brand.pages[0]?.id);
   }, [brand.pages, selected]);
 
+  // Drop a tile selection whose tile or page went away.
+  useEffect(() => {
+    if (tileSel && !brand.pages.find((p) => p.id === tileSel.pageId)?.tiles?.some((t) => t.id === tileSel.tileId)) setTileSel(null);
+  }, [brand.pages, tileSel]);
+
+  const selectTile = useCallback((pageId: string, tileId: string | null) => {
+    setSelected(pageId);
+    setTileSel((cur) => (tileId ? (cur?.pageId === pageId && cur.tileId === tileId ? cur : { pageId, tileId }) : null));
+  }, []);
+
   const edit = useMemo<EditApi>(
     () => ({
       setSlot: (pageId, key, value) => void apply([{ type: "updatePage", id: pageId, slots: { [key]: value } }]),
+      setTileSlot: (pageId, tileId, key, value) => void apply([{ type: "updateTile", pageId, id: tileId, slots: { [key]: value } }]),
       upload: (file, t) => void upload(file, t),
+      selectTile,
+      selectedTile: tileSel ? `${tileSel.pageId}/${tileSel.tileId}` : null,
     }),
-    [apply, upload],
+    [apply, upload, selectTile, tileSel],
   );
 
   const select = useCallback((id: string, scroll = true) => {
@@ -53,16 +67,21 @@ export function PagesView() {
         }
       } else if (e.key === "p") {
         setPresenting(Math.max(0, idx));
+      } else if (e.key === "Escape" && tileSel) {
+        setTileSel(null);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [brand.pages, selected, select, presenting]);
+  }, [brand.pages, selected, select, presenting, tileSel]);
 
-  const addPage = (layout: LayoutId) => {
+  const addPage = (layout: LayoutId | `board:${string}`) => {
     const idx = brand.pages.findIndex((p) => p.id === selected);
-    const title: Record<string, string> = LAYOUTS[layout].slots.some((s) => s.key === "title") ? { title: LAYOUTS[layout].name } : {};
-    void apply([{ type: "addPage", layout, slots: title, index: idx >= 0 ? idx + 1 : undefined }]);
+    const index = idx >= 0 ? idx + 1 : undefined;
+    if (layout.startsWith("board:")) return void apply([{ type: "addBoard", template: layout.slice(6), index }]);
+    const l = layout as LayoutId;
+    const title: Record<string, string> = LAYOUTS[l].slots.some((s) => s.key === "title") ? { title: LAYOUTS[l].name } : {};
+    void apply([{ type: "addPage", layout: l, slots: title, index }]);
   };
 
   return (
@@ -162,7 +181,12 @@ export function PagesView() {
           aria-label="Inspector"
           className={`${drawer === "inspect" ? "fixed inset-y-14 right-0 z-30 w-[min(360px,100vw)] shadow-lift" : "hidden"} min-h-0 flex-col border-l border-line bg-surface lg:static lg:flex lg:w-auto lg:shadow-none`}
         >
-          <Inspector pageId={selected} onSelect={select} />
+          <Inspector
+            pageId={selected}
+            onSelect={select}
+            tileId={tileSel && tileSel.pageId === selected ? tileSel.tileId : undefined}
+            onSelectTile={selectTile}
+          />
         </aside>
       </div>
 
@@ -172,7 +196,7 @@ export function PagesView() {
   );
 }
 
-function PageRail({ selected, onSelect, onAdd }: { selected?: string; onSelect: (id: string) => void; onAdd: (l: LayoutId) => void }) {
+function PageRail({ selected, onSelect, onAdd }: { selected?: string; onSelect: (id: string) => void; onAdd: (l: LayoutId | `board:${string}`) => void }) {
   const { brand, apply } = useStore();
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -254,8 +278,40 @@ function PageRail({ selected, onSelect, onAdd }: { selected?: string; onSelect: 
           + Add page
         </button>
         {menu && (
-          <div role="menu" className="panel absolute bottom-full left-3 z-40 mb-2 w-[300px] animate-fade-up overflow-hidden p-1 shadow-lift">
-            {LAYOUT_IDS.map((id) => (
+          <div
+            role="menu"
+            className="panel absolute bottom-full left-3 z-40 mb-2 max-h-[min(640px,80dvh)] w-[300px] animate-fade-up overflow-y-auto p-1 shadow-lift scrollbar-thin"
+          >
+            <p className="label px-3 pt-2 pb-1">Brand boards</p>
+            {Object.values(BOARD_TEMPLATES).map((t) => (
+              <button
+                key={t.id}
+                role="menuitem"
+                type="button"
+                className="flex w-full flex-col rounded-[10px] px-3 py-2 text-left hover:bg-sunken"
+                onClick={() => {
+                  onAdd(`board:${t.id}`);
+                  setMenu(false);
+                }}
+              >
+                <span className="text-[13px] font-medium">{t.name} board</span>
+                <span className="line-clamp-2 text-[11.5px] text-ink-3">{t.description}</span>
+              </button>
+            ))}
+            <button
+              role="menuitem"
+              type="button"
+              className="flex w-full flex-col rounded-[10px] px-3 py-2 text-left hover:bg-sunken"
+              onClick={() => {
+                onAdd("board:blank");
+                setMenu(false);
+              }}
+            >
+              <span className="text-[13px] font-medium">Blank board</span>
+              <span className="line-clamp-1 text-[11.5px] text-ink-3">An empty 12-column grid to compose tile by tile.</span>
+            </button>
+            <p className="label mt-1 border-t border-line px-3 pt-3 pb-1">Pages</p>
+            {LAYOUT_IDS.filter((id) => id !== "board").map((id) => (
               <button
                 key={id}
                 role="menuitem"

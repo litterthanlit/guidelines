@@ -7,6 +7,17 @@
  * All brand values arrive as CSS variables from <BrandTheme>.
  */
 
+/*
+ * --u computes once, on the slide, then inherits as a length. Without this,
+ * every nested size container (board tiles) would re-resolve 1cqw against
+ * itself and the type scale would drift tile by tile.
+ */
+@property --u {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 .slide-shell {
   container-type: inline-size;
   container-name: slide;
@@ -21,7 +32,7 @@
   --u: 1cqw;
   --pad: calc(var(--u) * 2.4);
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--slide-ar, 16 / 9);
   overflow: hidden;
   background: var(--b-bg);
   color: var(--b-fg);
@@ -89,9 +100,17 @@
 }
 .s-display {
   font-family: var(--b-display);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: var(--b-display-weight, 400);
+  letter-spacing: var(--b-display-tracking, -0.02em);
   line-height: 1.02;
+}
+/* Tracked mono caps: labels, captions, hex codes, indexes. */
+.s-label {
+  font-family: var(--b-mono, ui-monospace, monospace);
+  font-size: calc(var(--u) * 0.52);
+  line-height: 1.6;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 .s-cover-title {
   font-size: calc(var(--u) * 8.4);
@@ -107,12 +126,13 @@
 .s-lockup {
   display: inline-flex;
   align-items: center;
-  gap: calc(var(--u) * 0.5);
-  font-family: var(--b-text);
-  font-weight: 500;
+  gap: 0.48em;
+  font-family: var(--b-logo, var(--b-text));
+  font-weight: var(--b-logo-weight, 500);
   font-size: calc(var(--u) * 1.05);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--b-logo-tracking, -0.01em);
   line-height: 1;
+  white-space: nowrap;
 }
 .s-mark {
   display: inline-block;
@@ -120,6 +140,21 @@
   background-color: currentColor;
   -webkit-mask: var(--mark) center / contain no-repeat;
   mask: var(--mark) center / contain no-repeat;
+}
+/* Mark fills: parallel stripes (a second mask layer) or a primary→accent gradient. */
+.s-mark-stripes {
+  background: linear-gradient(180deg, currentColor 15%, var(--stripe-to, currentColor) 95%);
+  -webkit-mask:
+    var(--mark) center / contain no-repeat,
+    repeating-linear-gradient(180deg, #000 0 5.2%, transparent 5.2% 8.6%);
+  -webkit-mask-composite: source-in;
+  mask:
+    var(--mark) center / contain no-repeat,
+    repeating-linear-gradient(180deg, #000 0 5.2%, transparent 5.2% 8.6%);
+  mask-composite: intersect;
+}
+.s-mark-gradient {
+  background: linear-gradient(90deg, var(--b-primary), var(--b-accent) 50%, var(--b-primary));
 }
 .s-grain::after {
   content: "";
@@ -173,6 +208,368 @@
   padding: var(--pad);
 }
 
+/* ── Brand boards ── */
+.board {
+  --rule: color-mix(in srgb, var(--b-fg) 15%, var(--b-bg));
+  --board-pad: calc(var(--u) * 1.3);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  height: 100%;
+  gap: 1px;
+  padding: var(--board-pad);
+  background: var(--rule);
+  /* Paint the outer margin in the page color so only the gutters read as rules. */
+  box-shadow: inset 0 0 0 var(--board-pad) var(--b-bg);
+}
+.board[data-frame="tiles"] {
+  --rule: color-mix(in srgb, var(--b-bg) 16%, var(--b-fg));
+  --board-pad: 0px;
+}
+.board[data-frame="gallery"] {
+  --canvas: color-mix(in srgb, var(--b-fg) 58%, var(--b-bg));
+  column-gap: calc(var(--u) * 1.6);
+  row-gap: calc(var(--u) * 3.2);
+  padding: calc(var(--u) * 3.4) calc(var(--u) * 2.2) calc(var(--u) * 2.2);
+  background: var(--canvas);
+  box-shadow: none;
+}
+.tile {
+  --t-bg: var(--b-bg);
+  --t-fg: var(--b-fg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
+}
+.tile[data-tone="dark"] {
+  --t-bg: var(--b-fg);
+  --t-fg: var(--b-bg);
+  --stripe-to: var(--b-accent);
+}
+.tile[data-tone="panel"] {
+  --t-bg: var(--b-panel);
+}
+.tile[data-tone="brand"] {
+  --t-bg: var(--b-primary);
+  --t-fg: var(--b-primary-ink);
+}
+.tile[data-tone="clear"] {
+  --t-bg: transparent;
+}
+.tile-body {
+  --t-muted: color-mix(in srgb, var(--t-fg) 58%, transparent);
+  --t-rule: color-mix(in srgb, var(--t-fg) 22%, transparent);
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+  background: var(--t-bg);
+  color: var(--t-fg);
+}
+.tile-label {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: calc(var(--u) * 0.7);
+  font-size: calc(var(--u) * 0.85);
+  line-height: 1;
+  color: color-mix(in srgb, var(--b-bg) 88%, transparent);
+}
+.board:not([data-frame="gallery"]) .tile-label {
+  display: none;
+}
+.slide.is-editable .tile:hover > .tile-body::after,
+.slide.is-editable .tile:focus-visible > .tile-body::after,
+.slide.is-editable .tile[data-selected] > .tile-body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgb(255 79 31 / 0.5);
+}
+.slide.is-editable .tile[data-selected] > .tile-body::after,
+.slide.is-editable .tile:focus-visible > .tile-body::after {
+  box-shadow: inset 0 0 0 2px rgb(255 79 31 / 0.95);
+}
+
+/* Tile internals */
+.t-pad {
+  padding: calc(var(--u) * 1.6);
+}
+.t-pad-lg {
+  padding: 7cqw;
+}
+.t-labelrow {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.8);
+  min-width: 0;
+}
+.t-labelrow .t-rule-h {
+  flex: 1;
+  min-width: calc(var(--u) * 2);
+}
+.t-labelrow > .s-label:first-child {
+  flex: none;
+}
+.t-rule-h {
+  height: 1px;
+  background: var(--t-rule);
+}
+.t-labelrow .t-rule-h.is-short {
+  flex: 0 0 calc(var(--u) * 3.6);
+}
+.t-sublabel {
+  line-height: 1.9;
+  white-space: pre-line;
+}
+.t-sublabel {
+  color: var(--t-muted);
+}
+.tile[data-tone="dark"] .t-sublabel {
+  color: var(--b-secondary);
+}
+.t-sublabel::first-line {
+  color: var(--t-fg);
+}
+/* A mark set into artwork lets the artwork read through it. */
+.t-mark-inart {
+  opacity: 0.85;
+  mix-blend-mode: screen;
+}
+.tile:not([data-tone="dark"]) .t-mark-inart {
+  mix-blend-mode: multiply;
+}
+.t-rule-v {
+  width: 1px;
+  align-self: stretch;
+  background: var(--t-rule);
+}
+.t-muted {
+  color: var(--t-muted);
+}
+.t-accent {
+  color: var(--b-accent);
+}
+.t-headline {
+  line-height: 0.96;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+.t-mono-copy {
+  font-family: var(--b-mono, ui-monospace, monospace);
+  font-size: calc(var(--u) * 1.1);
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  white-space: pre-line;
+}
+.t-body {
+  font-size: calc(var(--u) * 0.78);
+  line-height: 1.55;
+  opacity: 0.8;
+  white-space: pre-line;
+}
+.t-fade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--t-bg) 0%, var(--t-bg) 24%, transparent 58%);
+}
+.t-fade.is-tall {
+  background: linear-gradient(180deg, var(--t-bg) 0%, var(--t-bg) 40%, transparent 74%);
+}
+.t-mark-glow {
+  filter: drop-shadow(0 0 calc(var(--u) * 0.5) color-mix(in srgb, var(--b-accent) 70%, transparent));
+}
+.t-cross {
+  width: calc(var(--u) * 1.1);
+  height: calc(var(--u) * 1.1);
+  flex: none;
+  color: var(--t-muted);
+}
+.t-index {
+  position: absolute;
+  top: calc(var(--u) * 1.6);
+  right: calc(var(--u) * 1.6);
+  width: max(calc(var(--u) * 8.5), 18cqw);
+  padding: calc(var(--u) * 0.4) 0 calc(var(--u) * 0.4) calc(var(--u) * 1);
+  border-left: 1px solid var(--t-rule);
+  font-family: var(--b-mono, ui-monospace, monospace);
+  font-size: calc(var(--u) * 0.46);
+  line-height: 2.2;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+}
+.t-index li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+}
+.t-index-cross {
+  position: absolute;
+  left: calc(var(--u) * -0.55);
+}
+.t-index-cross.is-top {
+  top: calc(var(--u) * -0.55);
+}
+.t-index-cross.is-bottom {
+  bottom: calc(var(--u) * -0.55);
+}
+.t-note {
+  position: absolute;
+  bottom: calc(var(--u) * 1.6);
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--u) * 0.7);
+  color: var(--t-muted);
+}
+.t-note .s-label {
+  font-size: calc(var(--u) * 0.46);
+}
+.t-note.is-left {
+  left: calc(var(--u) * 1.6);
+}
+.t-note.is-right {
+  right: calc(var(--u) * 1.6);
+  text-align: right;
+}
+.t-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.85em 1.2em 0.85em 1.5em;
+  border-radius: 999px;
+  background: var(--t-fg);
+  color: var(--t-bg);
+  font-family: var(--b-text);
+  font-weight: 500;
+  font-size: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+.t-button.is-rect {
+  border-radius: 0.4em;
+}
+.t-arrow {
+  width: 1.7em;
+  height: 0.85em;
+  flex: none;
+}
+.t-swatch {
+  width: 100%;
+}
+.t-sample {
+  font-size: min(28cqw, 34cqh);
+  line-height: 0.9;
+}
+.t-family {
+  color: var(--t-fg);
+  font-size: calc(var(--u) * 0.62);
+}
+.t-charset {
+  line-height: 2.1;
+  letter-spacing: 0.16em;
+  color: var(--t-muted);
+  word-break: break-all;
+}
+.t-step-title {
+  margin-top: 1.4cqh;
+  font-size: min(calc(var(--u) * 1.5), 7cqh);
+  line-height: 1.05;
+}
+.t-step-desc {
+  margin-top: 2.4cqh;
+  font-size: calc(var(--u) * 0.46);
+  line-height: 1.8;
+}
+/* Reserve three lines so step titles align across columns. */
+.t-col .t-step-desc {
+  min-height: calc(1.8em * 3);
+}
+.t-col {
+  padding-right: 3cqw;
+}
+.t-col + .t-col {
+  padding-left: 3cqw;
+  border-left: 1px solid var(--t-rule);
+}
+.t-card-col {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 4cqh 3cqw;
+}
+.t-card-col + .t-card-col {
+  border-left: 1px solid var(--t-rule);
+}
+.t-card-title {
+  margin-top: 2.5cqh;
+  font-family: var(--b-mono, ui-monospace, monospace);
+  font-size: min(calc(var(--u) * 1.15), 8cqh);
+  line-height: 1.12;
+  text-transform: uppercase;
+}
+.t-card {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 4cqh;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 0.9);
+  background: var(--b-fg);
+}
+.t-chrome {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1.2cqw;
+  height: 7cqh;
+  padding: 0 2.4cqw;
+  background: color-mix(in srgb, var(--b-fg) 86%, var(--b-bg));
+}
+.t-chrome span {
+  width: 1.4cqh;
+  height: 1.4cqh;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--b-bg) 45%, transparent);
+}
+.t-chrome i {
+  flex: 1;
+  height: 2.6cqh;
+  margin: 0 18cqw 0 6cqw;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--b-bg) 20%, transparent);
+}
+.t-webpage {
+  padding: 5cqh 6cqw;
+  overflow: hidden;
+  background: var(--t-bg);
+}
+.t-nav {
+  gap: 4cqw;
+  font-size: max(1.8cqw, calc(var(--u) * 0.36));
+  letter-spacing: 0.14em;
+}
+.t-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 6cqw;
+  margin-top: 6cqh;
+}
+.t-links li {
+  padding: 2.4cqh 0;
+  border-top: 1px solid var(--t-rule);
+  font-size: 2.4cqw;
+  font-weight: 500;
+}
+
 /* ── Mobile reflow ── */
 @container slide (max-width: 560px) {
   .slide {
@@ -209,5 +606,30 @@
   }
   .s-statement-title {
     font-size: calc(var(--u) * 2.6);
+  }
+  /* Boards stack their tiles, each keeping its on-board shape. */
+  .board {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+  .board[data-frame="gallery"] {
+    row-gap: calc(var(--u) * 2.6);
+  }
+  .board > .tile {
+    aspect-ratio: var(--tile-ar, 1.5);
+  }
+  /* Legibility floors for tracked mono at phone size (thumbnails use the fixed container and keep scale). */
+  .board .s-label {
+    font-size: max(calc(var(--u) * 0.52), 8.5px);
+  }
+  .board .t-step-desc,
+  .board .t-note .s-label {
+    font-size: max(calc(var(--u) * 0.46), 8px);
+  }
+  /* Corner annotations are decorative; at this width they'd collide with headlines. */
+  .board .t-index,
+  .board .t-note {
+    display: none;
   }
 }

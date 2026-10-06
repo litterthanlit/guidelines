@@ -33,14 +33,18 @@ await shot(`/b/${slug}`, "studio", { width: 1440, height: 900 });
 await shot(`/b/${slug}`, "studio-mobile", { width: 390, height: 844 });
 await shot(`/b/${slug}/board`, "board", { width: 1440, height: 900 });
 await shot(`/b/${slug}/tokens`, "tokens", { width: 1440, height: 900 });
+const aspect = (p) => (p.layout === "board" ? (p.slots.aspect ?? "3:2").split(":").map(Number) : [16, 9]);
 for (const [i, p] of brand.pages.entries()) {
-  await shot(`/render/${slug}/${p.id}`, `page-${String(i + 1).padStart(2, "0")}-${p.layout}`, { width: 1440, height: 810 });
+  const [w, h] = aspect(p);
+  await shot(`/render/${slug}/${p.id}`, `page-${String(i + 1).padStart(2, "0")}-${p.layout}`, { width: 1440, height: Math.round((1440 * h) / w) });
 }
 await shot(`/render/${slug}/${brand.pages[0].id}`, "page-01-mobile", { width: 390, height: 844 });
+const board = brand.pages.find((p) => p.layout === "board");
+if (board) await shot(`/render/${slug}/${board.id}`, "board-mobile", { width: 390, height: 844 });
 await browser.close();
 
 if (errors.length) {
   console.error(`✗ ${errors.length} problems:\n${errors.join("\n")}`);
   process.exit(1);
 }
-console.log(`✓ ${brand.pages.length + 7} screenshots in ${out}`);
+console.log(`✓ ${brand.pages.length + 7 + (board ? 1 : 0)} screenshots in ${out}`);

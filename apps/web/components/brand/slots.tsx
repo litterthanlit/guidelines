@@ -1,6 +1,6 @@
 "use client";
 
-import type { Brand, Page } from "@guidelines/core";
+import { svgAspect, type Brand, type Page, type Tile } from "@guidelines/core";
 import { createContext, useContext, useState, type CSSProperties, type ElementType, type KeyboardEvent, type ReactNode } from "react";
 import { assetUrl } from "./theme";
 
@@ -11,7 +11,10 @@ import { assetUrl } from "./theme";
 
 export interface EditApi {
   setSlot: (pageId: string, key: string, value: string | null) => void;
-  upload: (file: File, target: { pageId: string; slot: string; append?: boolean }) => void;
+  upload: (file: File, target: { pageId: string; slot: string; append?: boolean; tileId?: string }) => void;
+  setTileSlot?: (pageId: string, tileId: string, key: string, value: string | null) => void;
+  selectTile?: (pageId: string, tileId: string | null) => void;
+  selectedTile?: string | null;
 }
 
 export const EditContext = createContext<EditApi | null>(null);
@@ -33,6 +36,23 @@ export function useEdit() {
   return useContext(EditContext);
 }
 
+/** Set while rendering a board tile: slots then read from and write to the tile. */
+export const TileContext = createContext<Tile | null>(null);
+
+export function useTile() {
+  return useContext(TileContext);
+}
+
+/** A slot's value and setter, scoped to the current tile or page. */
+export function useSlot(k: string) {
+  const { page } = useSlide();
+  const tile = useTile();
+  const edit = useEdit();
+  const value = (tile ? tile.slots[k] : page.slots[k]) ?? "";
+  const set = edit ? (v: string | null) => (tile ? edit.setTileSlot?.(page.id, tile.id, k, v) : edit.setSlot(page.id, k, v)) : undefined;
+  return { value, set, edit };
+}
+
 export function SlotText({
   k,
   as: Tag = "div",
@@ -50,9 +70,7 @@ export function SlotText({
   multiline?: boolean;
   fallback?: string;
 }) {
-  const { page } = useSlide();
-  const edit = useEdit();
-  const value = page.slots[k] ?? "";
+  const { value, set, edit } = useSlot(k);
   const shown = value || fallback;
 
   if (!edit) {
@@ -65,11 +83,11 @@ export function SlotText({
   }
 
   const commit = (el: HTMLElement) => {
-    const next = (el.innerText ?? "")
+    const next = readEditable(el)
       .replace(/ /g, " ")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
-    if (next !== value.trim()) edit.setSlot(page.id, k, next || null);
+    if (next !== value.trim()) set?.(next || null);
   };
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -140,6 +158,7 @@ export function DropZone({
   children: ReactNode;
 }) {
   const { page } = useSlide();
+  const tile = useTile();
   const edit = useEdit();
   const [over, setOver] = useState(false);
   if (!edit)
@@ -164,7 +183,7 @@ export function DropZone({
         e.preventDefault();
         setOver(false);
         const files = [...e.dataTransfer.files].filter((f) => f.type.startsWith("image/"));
-        for (const f of append ? files.slice(0, 6) : files.slice(0, 1)) edit.upload(f, { pageId: page.id, slot, append });
+        for (const f of append ? files.slice(0, 6) : files.slice(0, 1)) edit.upload(f, { pageId: page.id, slot, append, tileId: tile?.id });
       }}
     >
       {children}
@@ -174,9 +193,9 @@ export function DropZone({
 
 /** An asset image that fills its (positioned) parent, with an optional fallback. */
 export function SlotImage({ k, fallback, className = "s-img", eager }: { k: string; fallback?: ReactNode; className?: string; eager?: boolean }) {
-  const { brand, page } = useSlide();
-  const edit = useEdit();
-  const asset = assetFor(brand, page.slots[k]);
+  const { brand } = useSlide();
+  const { value, edit } = useSlot(k);
+  const asset = assetFor(brand, value);
   return (
     <DropZone slot={k} className="absolute inset-0">
       {asset ? (
@@ -196,19 +215,56 @@ export function SlotImage({ k, fallback, className = "s-img", eager }: { k: stri
   );
 }
 
-export function Mark({ size, className, style }: { size: string; className?: string; style?: CSSProperties }) {
+export type MarkFill = "solid" | "stripes" | "gradient";
+
+/** The logomark, drawn through a CSS mask. `size` is its height; width follows the mark's aspect ratio. */
+export function Mark({ size, fill = "solid", className, style }: { size: string; fill?: MarkFill; className?: string; style?: CSSProperties }) {
   const { brand } = useSlide();
   if (!brand.logo.markSvg) return null;
-  return <span aria-hidden className={`s-mark ${className ?? ""}`} style={{ width: size, height: size, ...style }} />;
+  return (
+    <span
+      aria-hidden
+      className={`s-mark ${fill !== "solid" ? `s-mark-${fill}` : ""} ${className ?? ""}`}
+      style={{ height: size, width: `calc(${size} * var(--mark-aspect, 1))`, ...style }}
+    />
+  );
 }
 
-export function Lockup({ scale = 1, className, style }: { scale?: number; className?: string; style?: CSSProperties }) {
+/**
+ * Mark + wordmark. Wide marks sit at x-height, square ones at cap height plus,
+ * so lockups of any mark shape balance optically.
+ */
+export function Lockup({
+  scale = 1,
+  size,
+  show = "lockup",
+  fill,
+  className,
+  style,
+}: {
+  scale?: number;
+  /** Overrides `scale`: any CSS font-size for the wordmark. */
+  size?: string;
+  show?: "lockup" | "mark" | "wordmark";
+  fill?: MarkFill;
+  className?: string;
+  style?: CSSProperties;
+}) {
   const { brand } = useSlide();
   const name = brand.logo.wordmark || brand.meta.name;
+  const aspect = svgAspect(brand.logo.markSvg);
+  const markEm = aspect > 1.6 ? 0.78 : 1.24;
+  const showMark = show !== "wordmark" && !!brand.logo.markSvg;
+  const showName = show !== "mark" || !brand.logo.markSvg;
   return (
-    <div className={`s-lockup ${className ?? ""}`} style={{ fontSize: `calc(var(--u) * ${1.05 * scale})`, ...style }} aria-label={name}>
-      <Mark size={`calc(var(--u) * ${1.3 * scale})`} />
-      <span>{name}</span>
+    <div
+      className={`s-lockup ${className ?? ""}`}
+      style={{ fontSize: size ?? `calc(var(--u) * ${1.05 * scale})`, gap: aspect > 1.6 ? "0.38em" : "0.48em", ...style }}
+      role="img"
+      aria-label={name}
+    >
+      {showMark && <Mark size={`${show === "mark" ? markEm * 1.6 : markEm}em`} fill={fill} />}
+      {showName && <span aria-hidden>{name}</span>}
     </div>
   );
 }
